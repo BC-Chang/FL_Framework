@@ -183,7 +183,7 @@ class MS_Net(nn.Module):
             self.models = torch.load(
                 f'savedModels/{self.net_name}/{self.net_name}.pt',
                 map_location=self.device)
-            print('Model loaded succesfully')
+            print('Model loaded successfully')
             return True
         except FileNotFoundError:
             print('No pre-trained model found')
@@ -194,7 +194,7 @@ class MS_Net(nn.Module):
             self.models = torch.load(
                 f'savedModels/{self.net_name}/{self.net_name}_{name}.pt',
                 map_location=self.device)
-            print('Model loaded succesfully')
+            print('Model loaded successfully')
             return True
         except FileNotFoundError:
             print(f'No model called {name} found')
