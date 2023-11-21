@@ -80,11 +80,11 @@ class MSNet_Client(fl.client.NumPyClient):
         Returns:
             Locally updated model parameters and number of training samples
         """
-        optimizer = instantiate(conf.optimizer)
-
+        # optimizer = torch.optim.Adam(self.net.parameters, lr=1e-5)#instantiate(conf.optimizer)
+        # TODO: Get model parameters from config
         self.set_parameters(parameters)
-        results = train(self.net, self.trainloader, epochs=self.model_config.epochs,
-                 learning_rate=self.model_config.lr, DEVICE=self.model_config.device)
+        results = train(self.net, self.trainloader, epochs=10,
+                 learning_rate=1e-5, DEVICE="cuda")
 
         return self.get_parameters(self.net), len(self.trainloader), {}
 
