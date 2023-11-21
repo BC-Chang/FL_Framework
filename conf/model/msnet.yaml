@@ -7,4 +7,6 @@ num_filters: 4
 
 # Train logger
 
+# Training data
+input_data: test_net.yml
 

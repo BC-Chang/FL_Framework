@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import flwr as fl
 import torch
-import argparse
+#import argparse
 import utils
 from collections import OrderedDict
 from hydra.utils import instantiate
@@ -90,19 +90,19 @@ class MSNet_Client(fl.client.NumPyClient):
 @hydra.main(config_path="conf/model", config_name="msnet", version_base=None)
 def main(cfg: DictConfig) -> None:
     # Parse command line argument `partition`
-    parser = argparse.ArgumentParser(description="Flower Client")
-    parser.add_argument(
-        "--input_data",
-        type=str,
-        required=True,
-        help="Specify the path to the input data file to be used for client-side training",
-    )
+    #parser = argparse.ArgumentParser(description="Flower Client")
+    #parser.add_argument(
+    #    "--input_data",
+    #    type=str,
+    #    required=True,
+    #    help="Specify the path to the input data file to be used for client-side training",
+    #)
 
-    args = parser.parse_args()
+    #args = parser.parse_args()
 
     # TODO: Load data from a specific datafile
     # Load local data partition
-    trainset, testset = load_data.load_data(args.input_data, split="random")
+    trainset, testset = load_data.load_data(cfg.input_data, split="random")
 
     # TODO: Instantiate Flower client
     client = MSNet_Client(trainset, testset,)
