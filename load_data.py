@@ -57,7 +57,9 @@ def get_dataloader(net_dict, phases):
             if len(net_dict['x_array']) > 1:
                 data_tmp = sortdata(data_tmp, net_dict)  # concat feats
             #                         [x][fine][feat0]
-            masks = get_masks(data_tmp[0][-1][0][None, None], net_dict['num_scales'])
+            # TODO: change num_scales to be read from config file
+            num_scales = 4
+            masks = get_masks(data_tmp[0][-1][0][None, None], num_scales)
             data.append((num,) + (masks,) + (data_tmp,))
         dataloader[phase] = data
     return dataloader
