@@ -17,16 +17,16 @@ train_pressure:
  - 1
  - 1
 
-validation_sample:
+val_sample:
  - 374
 
-validation_subsample:
+val_subsample:
  - 4
 
-validation_size:
+val_size:
  - 256
 
-validation_pressure:
+val_pressure:
  - 1
 
 x_array:

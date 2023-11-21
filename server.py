@@ -32,10 +32,10 @@ def main(cfg: DictConfig) -> None:
         num_scales=4,
         num_features=1,
         num_filters=2,
-        device='cpu',
+        device='cuda',
         f_mult=2,
         summary=False
-    ).to("cpu")
+    ).to("cuda")
     #
     model_parameters = utils.get_model_parameters(model)
 
@@ -43,7 +43,7 @@ def main(cfg: DictConfig) -> None:
     model_dict = {'num_scales': 4,
                   'num_features': 1,
                   'num_filters': 2,
-                   'device': 'cpu',
+                   'device': 'cuda',
                    'f_mult': 2}
     # strategy = SaveModelStrategy(save_path=save_path, model_dict=model_dict)
     strategy = FedAvg()

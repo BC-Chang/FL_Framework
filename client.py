@@ -10,6 +10,7 @@ import hydra
 from omegaconf import DictConfig, OmegaConf
 from tasks import train, test
 import load_data
+from network import MS_Net
 
 class MSNet_Client(fl.client.NumPyClient):
     """
@@ -30,7 +31,7 @@ class MSNet_Client(fl.client.NumPyClient):
         fit:
         evaluate:
     """
-    def __init__(self, trainloader, valloader, model_config):
+    def __init__(self, trainloader, valloader):
         """
         Constructs attributes for the Flower client
         Parameters:
@@ -39,12 +40,18 @@ class MSNet_Client(fl.client.NumPyClient):
             valloader:
             model_dict:
         """
-        self.net = instantiate(model_config)
+        self.net = MS_Net(
+            num_scales=4,
+            num_features=1,
+            num_filters=2,
+            device='cuda',
+            f_mult=2,
+            summary=False,).to("cuda")#instantiate(model_config)
         self.trainloader = trainloader
         self.valloader = valloader
-        self.model_config = model_config
+        #self.model_config = model_config
 
-    def get_parameters(self):
+    def get_parameters(self, **kwargs):
         """
         Get parameters for the client
         """
@@ -87,8 +94,8 @@ class MSNet_Client(fl.client.NumPyClient):
         loss = test(self.net, self.valloader, self.device)
 
 
-@hydra.main(config_path="conf/model", config_name="msnet", version_base=None)
-def main(cfg: DictConfig) -> None:
+#@hydra.main(config_path="conf/model", config_name="msnet", version_base=None)
+def main():#cfg: DictConfig) -> None:
     # Parse command line argument `partition`
     #parser = argparse.ArgumentParser(description="Flower Client")
     #parser.add_argument(
@@ -102,10 +109,10 @@ def main(cfg: DictConfig) -> None:
 
     # TODO: Load data from a specific datafile
     # Load local data partition
-    trainset, testset = load_data.load_data(cfg.input_data, split="random")
+    trainset, testset = load_data.load_data("test_net.yml", split="random")
 
     # TODO: Instantiate Flower client
-    client = MSNet_Client(trainset, testset,)
+    client = MSNet_Client(trainset, testset)
 
 
     # Start Flower client

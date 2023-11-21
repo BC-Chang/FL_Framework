@@ -8,6 +8,7 @@ from omegaconf import DictConfig
 from collections import OrderedDict
 
 from utils import get_device
+from tqdm import tqdm
 
 def train(net, trainloader, valloader, epochs: int, learning_rate: float = 1.E-5,
           loss_f=nn.MSELoss(), optimizer_f=torch.optim.Adam,
@@ -38,12 +39,14 @@ def train(net, trainloader, valloader, epochs: int, learning_rate: float = 1.E-5
 
     # Set up training parameters
     optimizer = optimizer_f(net.parameters(), lr=learning_rate)  # Initialize optimizer
+    print("Optimizer Initialized")
     train_loss = 1e9  # Initialize value of training loss
     val_loss = 1e9  # Initialize value of validation loss
     net.train()
 
     # Training loop
-    for epoch in range(epochs):
+    print("Starting training")
+    for epoch in tqdm(range(epochs)):
         optimizer.zero_grad()
 
         # Loop through the training batches - Gradient accumulation
@@ -68,6 +71,7 @@ def train(net, trainloader, valloader, epochs: int, learning_rate: float = 1.E-5
         # Compute validation loss
         # TODO: Get config file for val step instead of hard-coding and log the validation loss
         if epoch % 10:
+            print(f"{epoch = }")
             val_loss = test(net, valloader, loss_f, device)
 
         results = {"train_loss": train_loss, "val_loss": val_loss}
