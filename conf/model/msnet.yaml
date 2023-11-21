@@ -3,11 +3,6 @@ _target_: model.Net
 # Model parameters
 num_filters: 4
 
-
-# Optimizer parameters
-opt_class: !name:torch.optim.Adam
-  lr: !ref <lr>
-
 # Scheduler parameters
 
 # Train logger
