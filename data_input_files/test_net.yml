@@ -2,16 +2,12 @@ train_sample:
  - 374
  - 374
  - 374
- - 374
-
 train_subsample:
- - 0
  - 1
- - 4
- - 5
+ - 2
+ - 3
 
 train_size:
- - 256
  - 256
  - 256
  - 256
@@ -20,30 +16,17 @@ train_pressure:
  - 1
  - 1
  - 1
- - 1
 
 validation_sample:
  - 374
- - 374
- - 374
- - 374
 
 validation_subsample:
- - 2
- - 3
- - 6
- - 7
+ - 4
 
 validation_size:
  - 256
- - 256
- - 256
- - 256
 
 validation_pressure:
- - 1
- - 1
- - 1
  - 1
 
 x_array:
