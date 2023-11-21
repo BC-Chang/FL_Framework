@@ -1,45 +1,63 @@
-from utils import get_dataloader
 from torch.utils.data import DataLoader, random_split
 import torch
 from typing import List
 
-def split_datasets(dataloader, NUM_CLIENTS):
-
-    partition_size = len(dataloader) // NUM_CLIENTS
-    lengths = [partition_size] * NUM_CLIENTS
-    datasets = random_split(dataloader, lengths, torch.Generator().manual_seed(42))
-    loaders = []
-    for ds in datasets:
-        loaders.append(DataLoader(ds, batch_size=1, shuffle=True))
-    return loaders
+from dataloading_utils import *
+import yaml
+import os
 
 
-def load_datasets_random_split(net_dict, BATCH_SIZE=1, NUM_CLIENTS=2, random_split=True):
-    train_set = get_dataloader(net_dict, ['train'])['train']
-    val_set = get_dataloader(net_dict, ['val'])['val']
-    # test_set = get_dataloader(net_dict, ['test'])['test']
-    #
+def load_data(data_input, split="random"):
+    """
+    Load data listed in input yaml file
+    Args:
+        data_input: Path to yaml file to load data from
+        split: Training/Validation split to be used
+            Options: "random", "manual"
+    Returns:
+        training dataloader, validation dataloader
+    """
+    with open(os.path.join("./data_input_files", data_input), 'r') as stream:
+        input_samples = yaml.load(stream, Loader=yaml.Loader)
 
-    train_loader = split_datasets(train_set, NUM_CLIENTS)
-    val_loader = split_datasets(val_set, NUM_CLIENTS)
+    input_samples['x_xform'] = [None if xform == "None" else xform for xform in input_samples['x_xform']]
+    input_samples['y_xform'] = [None if xform == "None" else xform for xform in input_samples['y_xform']]
+    input_samples['data_loc'] = "./training_data"
+    train_data = get_dataloader(input_samples, ['train'])['train']
+    val_data = get_dataloader(input_samples, ['val'])['val']
 
-
-    return train_loader, val_loader
-
-def load_datasets_manual_split(data_dicts: List, BATCH_SIZE=1, NUM_CLIENTS=2):
-
-    # Make sure that the number of data_dicts is equal to the number of clients
-    assert len(data_dicts) == NUM_CLIENTS, "Number of data_dicts does not equal to the number of clients"
-
-    train_loaders = []
-    val_loaders = []
-    for i in range(NUM_CLIENTS):
-        train_data = get_dataloader(data_dicts[i], ['train'])['train']
-        val_data = get_dataloader(data_dicts[i], ['val'])['val']
-        # test_data = get_dataloader(data_dicts[i], ['test'])['test']
+    return train_data, val_data
 
 
-        train_loaders.append(DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True, pin_memory=True))
-        val_loaders.append(DataLoader(val_data, batch_size=BATCH_SIZE, shuffle=False, pin_memory=False))
+def get_dataloader(net_dict, phases):
 
-    return train_loaders, val_loaders
+    if isinstance(phases, str):  # when only testing is needed
+        phases = [phases]
+
+    """The dataloader will have the following structure per sample:
+        - DL[0]: sample number (int)
+        - DL[1]: list of masks of size = num of scales, where the last one is binary
+        - DL[2]: list of inputs/outputs
+            i.e. DL[2][0][-1] should be the largest input image, conversely
+            i.e. DL[2][-1][-1] should be the largest output (y)
+      """
+
+    dataloader = {}
+    for phase in phases:
+        check_inputs(net_dict, phase)
+        samples, subsamples, sizes, pressures = get_fields(net_dict, phase)
+        data = []
+
+        for num, name_tuple in enumerate(zip(samples, subsamples, sizes, pressures)):
+            if num != 0:
+                if num < 0 or num > 1000:  # memory limit
+                    continue
+            sample_name = "".join([str(e) + '_' for e in name_tuple])
+            data_tmp = get_sample(net_dict, sample_name)
+            if len(net_dict['x_array']) > 1:
+                data_tmp = sortdata(data_tmp, net_dict)  # concat feats
+            #                         [x][fine][feat0]
+            masks = get_masks(data_tmp[0][-1][0][None, None], net_dict['num_scales'])
+            data.append((num,) + (masks,) + (data_tmp,))
+        dataloader[phase] = data
+    return dataloader

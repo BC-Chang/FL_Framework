@@ -2,6 +2,7 @@ import numpy as np
 
 import torch
 import torch.nn as nn
+from utils import add_dims
 
 
 def calc_loss(y_pred, y, loss_f, logs):
@@ -27,7 +28,7 @@ def mean_vel(y_pred):
     return means
 
 
-def scale_tensor(x, scale_factor=1, mode='nearest'):
+def scale_tensor(x, scale_factor=1., mode='nearest'):
     if mode == 'nearest':
         if scale_factor < 1:
             return nn.AvgPool3d(kernel_size=int(1 / scale_factor))(x)
@@ -70,4 +71,17 @@ def get_masks(x, scales):
             denom = denom.repeat_interleave(repeats=2, axis=ax)
         masks[scale] = torch.div(pooled[scale - 1], denom).squeeze(0)
     return masks[::-1]  # returns a list with masks. smallest size first
+
+
+def get_downscaled_list(x, net_dict):
+    """
+    X : 3D np array
+    returns a list with the desired number of coarse-grained tensors
+    """
+    x = torch.Tensor(add_dims(x, 1))
+    ds_x = []
+    ds_x.append(x)
+    for i in range(net_dict['num_scales'] - 1):
+        ds_x.append(scale_tensor(ds_x[-1], scale_factor=1/2, mode='nearest'))
+    return ds_x[::-1]  # returns the reversed list (small images first)
 

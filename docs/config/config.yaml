@@ -6,3 +6,6 @@ client_fraction: 1.0
 learning_rate: 1e-4
 save_path: "docs/results"
 data_file: "test_net"
+
+model:
+  _target_:FL

@@ -1,0 +1,10 @@
+---
+_target_: model.Net
+# Model parameters
+num_filters: 4
+
+# Scheduler parameters
+
+# Train logger
+
+
