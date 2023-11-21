@@ -2,7 +2,6 @@ import numpy as np
 
 import torch
 import torch.nn as nn
-from utils import add_dims
 
 
 def calc_loss(y_pred, y, loss_f, logs):
@@ -85,3 +84,7 @@ def get_downscaled_list(x, net_dict):
         ds_x.append(scale_tensor(ds_x[-1], scale_factor=1/2, mode='nearest'))
     return ds_x[::-1]  # returns the reversed list (small images first)
 
+def add_dims(x, num_dims):
+    for _ in range(num_dims):
+        x = x[np.newaxis]
+    return x

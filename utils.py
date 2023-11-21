@@ -40,8 +40,4 @@ def get_model_parameters(model: torch.nn.Module):
     return [val.cpu().numpy() for _, val in model.state_dict().items()]
 
 
-def add_dims(x, num_dims):
-    for dims in range(num_dims):
-        x = x[np.newaxis]
-    return x
 
