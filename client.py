@@ -86,11 +86,8 @@ class MSNet_Client(fl.client.NumPyClient):
 
         loss = test(self.net, self.valloader, self.device)
 
-def MSNet_Client():
-    return
 
-
-@hydra.main(config_path="conf/model", config_name="net", version_base=None)
+@hydra.main(config_path="conf/model", config_name="msnet", version_base=None)
 def main(cfg: DictConfig) -> None:
     # Parse command line argument `partition`
     parser = argparse.ArgumentParser(description="Flower Client")
