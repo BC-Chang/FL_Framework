@@ -80,7 +80,9 @@ def get_downscaled_list(x, net_dict):
     x = torch.Tensor(add_dims(x, 1))
     ds_x = []
     ds_x.append(x)
-    for i in range(net_dict['num_scales'] - 1):
+    # TODO: Get number of scales from config
+    num_scales = 4
+    for i in range(num_scales - 1):
         ds_x.append(scale_tensor(ds_x[-1], scale_factor=1/2, mode='nearest'))
     return ds_x[::-1]  # returns the reversed list (small images first)
 
