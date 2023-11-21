@@ -1,6 +1,7 @@
 ---
 
 num_rounds: 1
+round_timeout: 30
 num_clients: 1
 batch_size: 1
 num_clients_per_round_fit: 1

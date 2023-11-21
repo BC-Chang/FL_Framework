@@ -112,6 +112,7 @@ def test(net, testloader, loss_f=nn.MSELoss(), device: str = "cpu"):
 
     return loss
 
+'''
 def get_on_fit_config(config: DictConfig):
     """
     Get the configuration for the on_fit callback
@@ -140,5 +141,4 @@ def get_evalulate_fn(model_cfg: int, testloader):
         return loss, {"accuracy": accuracy}
 
     return evaluate_fn
-
-
+'''

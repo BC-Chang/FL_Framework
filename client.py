@@ -1,3 +1,4 @@
+import warnings
 import numpy as np
 import matplotlib.pyplot as plt
 import flwr as fl
@@ -5,13 +6,14 @@ import torch
 #import argparse
 import utils
 from collections import OrderedDict
-from hydra.utils import instantiate
-import hydra
-from omegaconf import DictConfig, OmegaConf
+#from hydra.utils import instantiate
+#import hydra
+#from omegaconf import DictConfig, OmegaConf
 from tasks import train, test
 import load_data
 from network import MS_Net
 
+warnings.filterwarnings("ignore", category=UserWarning)
 class MSNet_Client(fl.client.NumPyClient):
     """
     Initialize a flower client with specified network
@@ -44,9 +46,9 @@ class MSNet_Client(fl.client.NumPyClient):
             num_scales=4,
             num_features=1,
             num_filters=2,
-            device='cuda',
+            device='cuda:0',
             f_mult=2,
-            summary=False,).to("cuda")#instantiate(model_config)
+            summary=False,).to("cuda:0")#instantiate(model_config)
         self.trainloader = trainloader
         self.valloader = valloader
         #self.model_config = model_config
@@ -83,8 +85,8 @@ class MSNet_Client(fl.client.NumPyClient):
         # optimizer = torch.optim.Adam(self.net.parameters, lr=1e-5)#instantiate(conf.optimizer)
         # TODO: Get model parameters from config
         self.set_parameters(parameters)
-        results = train(self.net, self.trainloader, epochs=10,
-                 learning_rate=1e-5, DEVICE="cuda")
+        results = train(self.net, self.trainloader, self.valloader, epochs=10,
+                 learning_rate=1e-5, device="cuda:0")
 
         return self.get_parameters(self.net), len(self.trainloader), {}
 

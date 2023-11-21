@@ -32,10 +32,10 @@ def main(cfg: DictConfig) -> None:
         num_scales=4,
         num_features=1,
         num_filters=2,
-        device='cuda',
+        device='cuda:0',
         f_mult=2,
         summary=False
-    ).to("cuda")
+    ).to("cuda:0")
     #
     model_parameters = utils.get_model_parameters(model)
 
@@ -51,7 +51,8 @@ def main(cfg: DictConfig) -> None:
     # Start Flower server for four rounds of federated learning
     fl.server.start_server(
         server_address="0.0.0.0:8080",
-        config=fl.server.ServerConfig(num_rounds=cfg.num_rounds),
+        config=fl.server.ServerConfig(num_rounds=cfg.num_rounds,
+                                      round_timeout=cfg.round_timeout),
         strategy=strategy,
         # TODO: Add security certificates here if needed
     )
