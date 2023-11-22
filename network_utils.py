@@ -2,23 +2,22 @@ import numpy as np
 
 import torch
 import torch.nn as nn
-from utils import add_dims
 
 
-def calc_loss(y_pred, y, loss_f, logs):
+def calc_loss(y_pred, y, loss_f): #, logs):
     loss = 0
     y_var = y[-1].var()
 
     for scale, [y_hat, yi] in enumerate(zip(y_pred, y)):
         loss_scale = loss_f(y_hat, yi) / y_var
         loss += loss_scale
+    # TODO: Log loss values
+    #     logs.setdefault(f'loss_scale_{scale}', 0)
+    #     logs[f'loss_scale_{scale}'] += loss_scale.item()
+    # logs.setdefault('loss', 0)
+    # logs['loss'] += loss.item()
 
-        logs.setdefault(f'loss_scale_{scale}', 0)
-        logs[f'loss_scale_{scale}'] += loss_scale.item()
-    logs.setdefault('loss', 0)
-    logs['loss'] += loss.item()
-
-    return loss, logs
+    return loss#, logs
 
 
 def mean_vel(y_pred):
@@ -81,7 +80,13 @@ def get_downscaled_list(x, net_dict):
     x = torch.Tensor(add_dims(x, 1))
     ds_x = []
     ds_x.append(x)
-    for i in range(net_dict['num_scales'] - 1):
+    # TODO: Get number of scales from config
+    num_scales = 4
+    for i in range(num_scales - 1):
         ds_x.append(scale_tensor(ds_x[-1], scale_factor=1/2, mode='nearest'))
     return ds_x[::-1]  # returns the reversed list (small images first)
 
+def add_dims(x, num_dims):
+    for _ in range(num_dims):
+        x = x[np.newaxis]
+    return x

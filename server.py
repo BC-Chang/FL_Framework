@@ -12,6 +12,7 @@ from agg_strats import SaveModelStrategy
 from flwr.server.strategy import FedAvg
 from network import MS_Net
 import utils
+from tasks import weighted_average
 
 
 
@@ -46,12 +47,13 @@ def main(cfg: DictConfig) -> None:
                    'device': 'cpu',
                    'f_mult': 2}
     # strategy = SaveModelStrategy(save_path=save_path, model_dict=model_dict)
-    strategy = FedAvg()
+    strategy = FedAvg(evaluate_metrics_aggregation_fn=weighted_average)
 
     # Start Flower server for four rounds of federated learning
     fl.server.start_server(
         server_address="0.0.0.0:8080",
-        config=fl.server.ServerConfig(num_rounds=cfg.num_rounds),
+        config=fl.server.ServerConfig(num_rounds=cfg.num_rounds,),
+                                      #round_timeout=cfg.round_timeout),
         strategy=strategy,
         # TODO: Add security certificates here if needed
     )

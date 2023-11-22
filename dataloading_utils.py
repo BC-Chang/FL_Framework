@@ -48,10 +48,10 @@ def load_samples(feat, sample_name, net_dict, xform=None):
     sample_name: sample num
     xform: data transform to perform
     """
-
-    data_dict = {'bin': {'path': f'{net_dict["data_loc"]}/bin', 'dkey': 'bin', 'ext': 'bin'},
-                 'phi': {'path': f'{net_dict["data_loc"]}/elec', 'dkey': 'phi', 'ext': 'elec'},
-                 'Iz': {'path': f'{net_dict["data_loc"]}/elec', 'dkey': 'Iz', 'ext': 'elec'}}
+    # TODO: Add data location to hydra config file
+    data_dict = {'bin': {'path': f'./training_data/bin', 'dkey': 'bin', 'ext': 'bin'},
+                 'phi': {'path': f'./training_data/elec', 'dkey': 'phi', 'ext': 'elec'},
+                 'Iz': {'path': f'./training_data/elec', 'dkey': 'Iz', 'ext': 'elec'}}
 
     path = data_dict.get(feat, data_dict.get('bin'))['path']
 

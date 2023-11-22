@@ -8,6 +8,7 @@ from omegaconf import DictConfig
 from collections import OrderedDict
 
 from utils import get_device
+from tqdm import tqdm
 
 def train(net, trainloader, valloader, epochs: int, learning_rate: float = 1.E-5,
           loss_f=nn.MSELoss(), optimizer_f=torch.optim.Adam,
@@ -43,7 +44,7 @@ def train(net, trainloader, valloader, epochs: int, learning_rate: float = 1.E-5
     net.train()
 
     # Training loop
-    for epoch in range(epochs):
+    for epoch in tqdm(range(epochs)):
         optimizer.zero_grad()
 
         # Loop through the training batches - Gradient accumulation
@@ -58,21 +59,23 @@ def train(net, trainloader, valloader, epochs: int, learning_rate: float = 1.E-5
             y_hat = net(x_n, masks)
             # TODO: Log loss values
             loss_prev = train_loss
-            loss = calc_loss(y_hat, y_n, loss_f)
+            train_loss = calc_loss(y_hat, y_n, loss_f)
             # credit assignment
-            loss.backward()
+            train_loss.backward()
 
         # update model weights
         optimizer.step()
 
         # Compute validation loss
         # TODO: Get config file for val step instead of hard-coding and log the validation loss
-        if epoch % 10:
+        if epoch > 0 and epoch % 1 == 0:
+            print(f"{epoch = }")
             val_loss = test(net, valloader, loss_f, device)
 
         results = {"train_loss": train_loss, "val_loss": val_loss}
+        print(results)
 
-        return results
+    return results
 
 
 def test(net, testloader, loss_f=nn.MSELoss(), device: str = "cpu"):
@@ -108,6 +111,16 @@ def test(net, testloader, loss_f=nn.MSELoss(), device: str = "cpu"):
 
     return loss
 
+
+def weighted_average(metrics):
+    # Multiply accuracy of each client by number of examples used
+    loss = [m["loss"] for _, m in metrics]
+    # accuracies = [num_examples * m["accuracy"] for num_examples, m in metrics]
+
+    # Aggregate and return custom metric (weighted average)
+    return {"loss": sum(loss)}
+
+'''
 def get_on_fit_config(config: DictConfig):
     """
     Get the configuration for the on_fit callback
@@ -136,5 +149,4 @@ def get_evalulate_fn(model_cfg: int, testloader):
         return loss, {"accuracy": accuracy}
 
     return evaluate_fn
-
-
+'''

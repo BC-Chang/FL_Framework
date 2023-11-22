@@ -1,0 +1,42 @@
+train_sample:
+ - 374
+ - 374
+ - 374
+train_subsample:
+ - 1
+ - 2
+ - 3
+
+train_size:
+ - 256
+ - 256
+ - 256
+ 
+train_pressure:
+ - 1
+ - 1
+ - 1
+
+val_sample:
+ - 374
+
+val_subsample:
+ - 4
+
+val_size:
+ - 256
+
+val_pressure:
+ - 1
+
+x_array:
+ - 'bin'
+
+y_array:
+ - 'phi'
+
+x_xform:
+ - None
+ 
+y_xform:
+ - None
