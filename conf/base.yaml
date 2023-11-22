@@ -9,7 +9,7 @@ num_clients_per_round_eval: 1
 
 config_fit:
   lr: 1.e-5
-  local_epochs: 10
+  local_epochs: 2
 
 defaults:
   - model: msnet

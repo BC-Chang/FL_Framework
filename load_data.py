@@ -61,5 +61,9 @@ def get_dataloader(net_dict, phases):
             num_scales = 4
             masks = get_masks(data_tmp[0][-1][0][None, None], num_scales)
             data.append((num,) + (masks,) + (data_tmp,))
-        dataloader[phase] = data
+        dataloader[phase] = DataLoader(data, batch_size=1,
+                                       shuffle=(phase == 'train'),
+                                       # shuffle = False
+                                       pin_memory=True,
+                                       num_workers=1)#data
     return dataloader

@@ -46,18 +46,18 @@ class MSNet_Client(fl.client.NumPyClient):
             num_scales=4,
             num_features=1,
             num_filters=2,
-            device='cuda:0',
+            device='cpu',
             f_mult=2,
-            summary=False,).to("cuda:0")#instantiate(model_config)
+            summary=False,).to("cpu")#instantiate(model_config)
         self.trainloader = trainloader
         self.valloader = valloader
         #self.model_config = model_config
 
-    def get_parameters(self, **kwargs):
+    def get_parameters(self, config):
         """
         Get parameters for the client
         """
-        return utils.get_model_parameters(self.net)
+        return [val.cpu().numpy() for _, val in self.net.state_dict().items()]
 
     def set_parameters(self, parameters):
         """
@@ -85,15 +85,17 @@ class MSNet_Client(fl.client.NumPyClient):
         # optimizer = torch.optim.Adam(self.net.parameters, lr=1e-5)#instantiate(conf.optimizer)
         # TODO: Get model parameters from config
         self.set_parameters(parameters)
-        results = train(self.net, self.trainloader, self.valloader, epochs=10,
-                 learning_rate=1e-5, device="cuda:0")
+        results = train(self.net, self.trainloader, self.valloader, epochs=2,
+                 learning_rate=1e-5, device="cpu")
 
         return self.get_parameters(self.net), len(self.trainloader), {}
 
     def evaluate(self, parameters, config):
         self.set_parameters(parameters)
 
-        loss = test(self.net, self.valloader, self.device)
+        loss = test(self.net, self.valloader, device="cpu")
+
+        return float(loss), len(self.valloader), {"loss": float(loss)}
 
 
 #@hydra.main(config_path="conf/model", config_name="msnet", version_base=None)
