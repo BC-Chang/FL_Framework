@@ -7,26 +7,28 @@ import yaml
 import os
 
 
-def load_data(data_input, split="random"):
+def load_data(data_input, phases=('train', 'val', 'test')):
     """
     Load data listed in input yaml file
     Args:
         data_input: Path to yaml file to load data from
-        split: Training/Validation split to be used
-            Options: "random", "manual"
+        phases: List of phases to load data: options are 'train', 'val', 'test'
     Returns:
         training dataloader, validation dataloader
     """
     with open(os.path.join("./data_input_files", data_input), 'r') as stream:
         input_samples = yaml.load(stream, Loader=yaml.Loader)
 
+    assert all(phase.lower() in ['train', 'val', 'test'] for phase in phases), "Phase must be one of 'train', 'val', or 'test'"
+
     input_samples['x_xform'] = [None if xform == "None" else xform for xform in input_samples['x_xform']]
     input_samples['y_xform'] = [None if xform == "None" else xform for xform in input_samples['y_xform']]
     input_samples['data_loc'] = "./training_data"
-    train_data = get_dataloader(input_samples, ['train'])['train']
-    val_data = get_dataloader(input_samples, ['val'])['val']
+    data_sets = []
+    for phase in phases:
+        data_sets.append(get_dataloader(input_samples, [phase])[phase])
 
-    return train_data, val_data
+    return data_sets
 
 
 def get_dataloader(net_dict, phases):

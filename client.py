@@ -45,7 +45,7 @@ class MSNet_Client(fl.client.NumPyClient):
         self.net = MS_Net(
             num_scales=4,
             num_features=1,
-            num_filters=2,
+            num_filters=4,
             device='cpu',
             f_mult=2,
             summary=False,).to("cpu")#instantiate(model_config)
@@ -100,27 +100,16 @@ class MSNet_Client(fl.client.NumPyClient):
 
 #@hydra.main(config_path="conf/model", config_name="msnet", version_base=None)
 def main():#cfg: DictConfig) -> None:
-    # Parse command line argument `partition`
-    #parser = argparse.ArgumentParser(description="Flower Client")
-    #parser.add_argument(
-    #    "--input_data",
-    #    type=str,
-    #    required=True,
-    #    help="Specify the path to the input data file to be used for client-side training",
-    #)
-
-    #args = parser.parse_args()
 
     # TODO: Load data from a specific datafile
     # Load local data partition
-    trainset, testset = load_data.load_data("test_net.yml", split="random")
+    trainset, valset = load_data.load_data("train_net.yml", phases=["train", "val"])
 
     # TODO: Instantiate Flower client
-    client = MSNet_Client(trainset, testset)
+    client = MSNet_Client(trainset, valset)
 
 
     # Start Flower client
-    # TODO: Check server address
     fl.client.start_numpy_client(server_address="127.0.0.1:8080",
                                  client=client,
                                  # TODO: Add security certificates if needed

@@ -120,7 +120,7 @@ def weighted_average(metrics):
     # Aggregate and return custom metric (weighted average)
     return {"loss": sum(loss)}
 
-'''
+
 def get_on_fit_config(config: DictConfig):
     """
     Get the configuration for the on_fit callback
@@ -128,11 +128,12 @@ def get_on_fit_config(config: DictConfig):
     def fit_config_fn(server_round: int):
         return {
             "lr": config.lr,
-            "epochs": config.epochs,
+            "epochs": config.local_epochs,
         }
     return fit_config_fn
 
-def get_evalulate_fn(model_cfg: int, testloader):
+
+def get_evaluate_fn(model_cfg: int, testloader):
     """Return a function to evaluate the global model."""
 
     def evaluate_fn(server_round: int, parameters, config):
@@ -144,9 +145,9 @@ def get_evalulate_fn(model_cfg: int, testloader):
         state_dict = OrderedDict({k: torch.Tensor(v) for k, v in params_dict})
         model.load_state_dict(state_dict, strict=True)
 
-        loss, accuracy = test(model, testloader, device)
+        loss = test(model, testloader, device='cpu')
 
-        return loss, {"accuracy": accuracy}
+        return float(loss), {}
 
     return evaluate_fn
-'''
+

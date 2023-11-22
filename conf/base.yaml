@@ -6,6 +6,7 @@ num_clients: 1
 batch_size: 1
 num_clients_per_round_fit: 1
 num_clients_per_round_eval: 1
+device: cpu
 
 config_fit:
   lr: 1.e-5
