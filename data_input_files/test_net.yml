@@ -1,32 +1,13 @@
-train_sample:
- - 374
- - 374
- - 374
-train_subsample:
- - 1
- - 2
- - 3
-
-train_size:
- - 256
- - 256
- - 256
- 
-train_pressure:
- - 1
- - 1
- - 1
-
-val_sample:
+test_sample:
  - 374
 
-val_subsample:
+test_subsample:
  - 4
 
-val_size:
+test_size:
  - 256
 
-val_pressure:
+test_pressure:
  - 1
 
 x_array:

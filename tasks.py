@@ -10,9 +10,8 @@ from collections import OrderedDict
 from utils import get_device
 from tqdm import tqdm
 
-def train(net, trainloader, valloader, epochs: int, learning_rate: float = 1.E-5,
-          loss_f=nn.MSELoss(), optimizer_f=torch.optim.Adam,
-          device: str="cpu"):
+
+def train(net, trainloader, valloader, optimizer, epochs: int, loss_f=nn.MSELoss(), device: str="cpu"):
     """
     Function for training loop
     Parameters:
@@ -22,15 +21,13 @@ def train(net, trainloader, valloader, epochs: int, learning_rate: float = 1.E-5
             Training set dataloader
         valloader:
             Validation set dataloader
+        optimizer: torch.optim.Optimizer
+            Optimizer, to be instantiated in client
         epochs: int
             Number of epochs to train for
-        learning_rate: float
-            Learning rate for optimizer
         loss_f: torch.nn.Module
             Loss function
-        optimizer_f: torch.optim.Optimizer
-            Optimizer function
-        DEVICE: str
+        device: str
             Device on which to run the model
     Returns:
         results: Dict
@@ -38,7 +35,7 @@ def train(net, trainloader, valloader, epochs: int, learning_rate: float = 1.E-5
     """
 
     # Set up training parameters
-    optimizer = optimizer_f(net.parameters(), lr=learning_rate)  # Initialize optimizer
+    # optimizer = optimizer_f(net.parameters(), lr=learning_rate)  # Initialize optimizer
     train_loss = 1e9  # Initialize value of training loss
     val_loss = 1e9  # Initialize value of validation loss
     net.train()
@@ -120,7 +117,7 @@ def weighted_average(metrics):
     # Aggregate and return custom metric (weighted average)
     return {"loss": sum(loss)}
 
-'''
+
 def get_on_fit_config(config: DictConfig):
     """
     Get the configuration for the on_fit callback
@@ -128,11 +125,12 @@ def get_on_fit_config(config: DictConfig):
     def fit_config_fn(server_round: int):
         return {
             "lr": config.lr,
-            "epochs": config.epochs,
+            "epochs": config.local_epochs,
         }
     return fit_config_fn
 
-def get_evalulate_fn(model_cfg: int, testloader):
+
+def get_evaluate_fn(model_cfg: int, testloader):
     """Return a function to evaluate the global model."""
 
     def evaluate_fn(server_round: int, parameters, config):
@@ -144,9 +142,9 @@ def get_evalulate_fn(model_cfg: int, testloader):
         state_dict = OrderedDict({k: torch.Tensor(v) for k, v in params_dict})
         model.load_state_dict(state_dict, strict=True)
 
-        loss, accuracy = test(model, testloader, device)
+        loss = test(model, testloader, device='cpu')
 
-        return loss, {"accuracy": accuracy}
+        return float(loss), {}
 
     return evaluate_fn
-'''
+

@@ -12,8 +12,8 @@ from agg_strats import SaveModelStrategy
 from flwr.server.strategy import FedAvg
 from network import MS_Net
 import utils
-from tasks import weighted_average
-
+from tasks import weighted_average, get_evaluate_fn, get_on_fit_config
+import load_data
 
 
 @hydra.main(config_path="conf/", config_name="base", version_base=None)
@@ -27,40 +27,32 @@ def main(cfg: DictConfig) -> None:
     # Parse config * get experiment output directory
     save_path = HydraConfig.get().runtime.output_dir
 
-    # TODO: Either instantiate a new model or load from a checkpoint
-    # model = hydra.utils.instantiate(cfg.model)
-    model = MS_Net(
-        num_scales=4,
-        num_features=1,
-        num_filters=2,
-        device='cpu',
-        f_mult=2,
-        summary=False
-    ).to("cpu")
-    #
+    # TODO: Allow option to load from checkpoint
+    model = hydra.utils.instantiate(cfg.model).to(cfg.device)
+
+    # Get model parameters
     model_parameters = utils.get_model_parameters(model)
 
+    # Centralized test data
+    testloader = load_data.load_data("test_net.yml", phases=['test'])[0]
+
     # TODO: Instantiate a strategy
-    model_dict = {'num_scales': 4,
-                  'num_features': 1,
-                  'num_filters': 2,
-                   'device': 'cpu',
-                   'f_mult': 2}
-    # strategy = SaveModelStrategy(save_path=save_path, model_dict=model_dict)
-    strategy = FedAvg(evaluate_metrics_aggregation_fn=weighted_average)
+    strategy = hydra.utils.instantiate(cfg.strategy, evaluate_metrics_aggregation_fn=weighted_average,
+                                       evaluate_fn=get_evaluate_fn(cfg.model, testloader))
 
     # Start Flower server for four rounds of federated learning
-    fl.server.start_server(
+    history = fl.server.start_server(
         server_address="0.0.0.0:8080",
-        config=fl.server.ServerConfig(num_rounds=cfg.num_rounds,),
-                                      #round_timeout=cfg.round_timeout),
+        config=fl.server.ServerConfig(num_rounds=cfg.num_rounds,
+                                      round_timeout=cfg.round_timeout),
         strategy=strategy,
         # TODO: Add security certificates here if needed
+        # https://github.com/adap/flower/blob/821d843278e60c55acdfb3574de8958c26f7a644/src/py/flwr/server/app.py#L117
     )
 
     # Get global parameters with:
-    # strategy.global_parameters
-    print("All done")
+    print(history)
+    print("All done :)")
 
 
 if __name__ == "__main__":

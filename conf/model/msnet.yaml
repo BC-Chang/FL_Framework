@@ -1,12 +1,7 @@
 ---
-_target_: model.Net
+_target_: network.MS_Net
 # Model parameters
 num_filters: 4
-
-# Scheduler parameters
-
-# Train logger
-
-# Training data
-input_data: test_net.yml
-
+num_features: 1
+f_mult: 2
+summary: False
