@@ -41,15 +41,17 @@ def main(cfg: DictConfig) -> None:
                                        evaluate_fn=get_evaluate_fn(cfg.model, testloader))
 
     # Start Flower server for four rounds of federated learning
-    fl.server.start_server(
+    history = fl.server.start_server(
         server_address="0.0.0.0:8080",
-        config=fl.server.ServerConfig(num_rounds=cfg.num_rounds,),
-                                      #round_timeout=cfg.round_timeout),
+        config=fl.server.ServerConfig(num_rounds=cfg.num_rounds,
+                                      round_timeout=cfg.round_timeout),
         strategy=strategy,
         # TODO: Add security certificates here if needed
+        # https://github.com/adap/flower/blob/821d843278e60c55acdfb3574de8958c26f7a644/src/py/flwr/server/app.py#L117
     )
 
     # Get global parameters with:
+    print(history)
     print("All done :)")
 
 

@@ -7,11 +7,12 @@ import yaml
 import os
 
 
-def load_data(data_input, phases=('train', 'val', 'test')):
+def load_data(data_input, path_to_data="./training_data", phases=('train', 'val', 'test')):
     """
     Load data listed in input yaml file
     Args:
-        data_input: Path to yaml file to load data from
+        data_input: Name of yaml file to load data from
+        path_to_data: Path to parent directory containing data
         phases: List of phases to load data: options are 'train', 'val', 'test'
     Returns:
         training dataloader, validation dataloader
@@ -19,11 +20,13 @@ def load_data(data_input, phases=('train', 'val', 'test')):
     with open(os.path.join("./data_input_files", data_input), 'r') as stream:
         input_samples = yaml.load(stream, Loader=yaml.Loader)
 
-    assert all(phase.lower() in ['train', 'val', 'test'] for phase in phases), "Phase must be one of 'train', 'val', or 'test'"
+    assert all(phase.lower() in ['train', 'val', 'test'] for phase in phases), \
+        "Phase must be one of 'train', 'val', or 'test'"
 
     input_samples['x_xform'] = [None if xform == "None" else xform for xform in input_samples['x_xform']]
     input_samples['y_xform'] = [None if xform == "None" else xform for xform in input_samples['y_xform']]
-    input_samples['data_loc'] = "./training_data"
+    input_samples['data_loc'] = path_to_data
+
     data_sets = []
     for phase in phases:
         data_sets.append(get_dataloader(input_samples, [phase])[phase])
@@ -58,14 +61,12 @@ def get_dataloader(net_dict, phases):
             data_tmp = get_sample(net_dict, sample_name)
             if len(net_dict['x_array']) > 1:
                 data_tmp = sortdata(data_tmp, net_dict)  # concat feats
-            #                         [x][fine][feat0]
             # TODO: change num_scales to be read from config file
             num_scales = 4
             masks = get_masks(data_tmp[0][-1][0][None, None], num_scales)
             data.append((num,) + (masks,) + (data_tmp,))
         dataloader[phase] = DataLoader(data, batch_size=1,
                                        shuffle=(phase == 'train'),
-                                       # shuffle = False
                                        pin_memory=True,
-                                       num_workers=1)#data
+                                       num_workers=1)
     return dataloader

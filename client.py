@@ -3,12 +3,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import flwr as fl
 import torch
-#import argparse
 import utils
 from collections import OrderedDict
-#from hydra.utils import instantiate
-#import hydra
-#from omegaconf import DictConfig, OmegaConf
+from hydra.utils import instantiate
+import hydra
+from omegaconf import DictConfig, OmegaConf
 from tasks import train, test
 import load_data
 from network import MS_Net
@@ -33,7 +32,7 @@ class MSNet_Client(fl.client.NumPyClient):
         fit:
         evaluate:
     """
-    def __init__(self, trainloader, valloader):
+    def __init__(self, trainloader, valloader, cfg):
         """
         Constructs attributes for the Flower client
         Parameters:
@@ -42,16 +41,10 @@ class MSNet_Client(fl.client.NumPyClient):
             valloader:
             model_dict:
         """
-        self.net = MS_Net(
-            num_scales=4,
-            num_features=1,
-            num_filters=4,
-            device='cpu',
-            f_mult=2,
-            summary=False,).to("cpu")#instantiate(model_config)
+        self.net = instantiate(cfg.model)
         self.trainloader = trainloader
         self.valloader = valloader
-        #self.model_config = model_config
+        self.cfg = cfg
 
     def get_parameters(self, config):
         """
@@ -72,7 +65,7 @@ class MSNet_Client(fl.client.NumPyClient):
         state_dict = OrderedDict({k: torch.tensor(v) for k, v in params_dict})
         self.net.load_state_dict(state_dict, strict=True)
 
-    def fit(self, parameters, conf):
+    def fit(self, parameters, config):
         """
         Train the client
         Args:
@@ -82,37 +75,40 @@ class MSNet_Client(fl.client.NumPyClient):
         Returns:
             Locally updated model parameters and number of training samples
         """
-        # optimizer = torch.optim.Adam(self.net.parameters, lr=1e-5)#instantiate(conf.optimizer)
-        # TODO: Get model parameters from config
+
         self.set_parameters(parameters)
-        results = train(self.net, self.trainloader, self.valloader, epochs=2,
-                 learning_rate=1e-5, device="cpu")
+        # TODO: Optimizer from config file
+        optimizer = instantiate(self.cfg.optimizer, params=self.net.parameters())
+
+        results = train(self.net, self.trainloader, self.valloader, optimizer, epochs=config["epochs"],
+                        device=self.cfg.device)
 
         return self.get_parameters(self.net), len(self.trainloader), {}
 
     def evaluate(self, parameters, config):
         self.set_parameters(parameters)
 
-        loss = test(self.net, self.valloader, device="cpu")
+        loss = test(self.net, self.valloader, device=self.cfg.device)
 
         return float(loss), len(self.valloader), {"loss": float(loss)}
 
 
-#@hydra.main(config_path="conf/model", config_name="msnet", version_base=None)
-def main():#cfg: DictConfig) -> None:
+@hydra.main(config_path="conf/", config_name="base", version_base=None)
+def main(cfg: DictConfig) -> None:
 
     # TODO: Load data from a specific datafile
     # Load local data partition
-    trainset, valset = load_data.load_data("train_net.yml", phases=["train", "val"])
+    trainset, valset = load_data.load_data(cfg.data_input_file, path_to_data=cfg.data_loc, phases=["train", "val"])
 
     # TODO: Instantiate Flower client
-    client = MSNet_Client(trainset, valset)
+    client = MSNet_Client(trainset, valset, cfg)
 
 
     # Start Flower client
     fl.client.start_numpy_client(server_address="127.0.0.1:8080",
                                  client=client,
                                  # TODO: Add security certificates if needed
+                                 # https://github.com/adap/flower/blob/821d843278e60c55acdfb3574de8958c26f7a644/src/py/flwr/client/app.py#L242
                                  )
 
 if __name__ == "__main__":
