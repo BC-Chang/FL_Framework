@@ -1,15 +1,22 @@
 ---
 
-num_rounds: 10
-num_clients: 100
+num_rounds: 1
+round_timeout: !!null
+num_clients: 1
 batch_size: 1
-num_clients_per_round_fit: 2
-num_clients_per_round_eval: 2
+num_clients_per_round_fit: 1
+num_clients_per_round_eval: 1
+device: cpu
+
+data_input_file: ???
+data_loc: ./training_data
+
 
 config_fit:
   lr: 1.e-5
-  local_epochs: 100
+  local_epochs: 2
 
 defaults:
   - model: msnet
   - strategy: fedavg  # points to conf/strategy/fedavg.yaml
+  - optimizer: adam.yaml # points to conf/optimizer/adam.yaml

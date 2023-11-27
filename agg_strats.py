@@ -25,7 +25,7 @@ class SaveModelStrategy(FedAvg):
                           summary=False).to(model_dict['device'])
         super().__init__(*args, **kwargs)
 
-    def aggregate_fit(self, rnd: int, results, failures, ):
+    def aggregate_fit(self, rnd: int, results, failures,):
         aggregated_parameters, aggregated_metrics = super().aggregate_fit(rnd, results, failures)
 
         if aggregated_parameters is not None:

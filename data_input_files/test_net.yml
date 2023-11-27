@@ -1,0 +1,23 @@
+test_sample:
+ - 374
+
+test_subsample:
+ - 4
+
+test_size:
+ - 256
+
+test_pressure:
+ - 1
+
+x_array:
+ - 'bin'
+
+y_array:
+ - 'phi'
+
+x_xform:
+ - None
+ 
+y_xform:
+ - None

@@ -1,0 +1,7 @@
+---
+_target_: network.MS_Net
+# Model parameters
+num_filters: 4
+num_features: 1
+f_mult: 2
+summary: False
