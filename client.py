@@ -98,7 +98,7 @@ def main(cfg: DictConfig) -> None:
 
     # TODO: Load data from a specific datafile
     # Load local data partition
-    trainset, valset = load_data.load_data(cfg.data_input_file, path_to_data=cfg.data_loc, phases=["train", "val"])
+    trainset, valset = load_data.load_data(cfg.train_input_file, path_to_data=cfg.data_loc, phases=["train", "val"])
 
     # Instantiate Flower client
     client = MSNet_Client(trainset, valset, cfg)
