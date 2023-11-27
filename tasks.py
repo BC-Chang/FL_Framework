@@ -65,8 +65,7 @@ def train(net, trainloader, valloader, optimizer, epochs: int, loss_f=nn.MSELoss
 
         # Compute validation loss
         # TODO: Get config file for val step instead of hard-coding and log the validation loss
-        if epoch > 0 and epoch % 1 == 0:
-            print(f"{epoch = }")
+        if epoch % 1 == 0:
             val_loss = test(net, valloader, loss_f, device)
 
         results = {"train_loss": train_loss, "val_loss": val_loss}
