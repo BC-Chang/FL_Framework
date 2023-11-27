@@ -126,3 +126,11 @@ val_subsample:
 - '61'
 - '02'
 - '03'
+x_array:
+- 'bin'
+y_array:
+- 'phi'
+x_xform:
+- None
+y_xform:
+- None
