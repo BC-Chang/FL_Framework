@@ -133,7 +133,7 @@ def get_evaluate_fn(model_cfg: int, testloader):
     """Return a function to evaluate the global model."""
 
     def evaluate_fn(server_round: int, parameters, config):
-        model = instantiate(model_cfg).to(model_cfg.device)
+        model = instantiate(model_cfg)
 
         device = get_device()
 
