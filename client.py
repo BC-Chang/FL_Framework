@@ -41,7 +41,7 @@ class MSNet_Client(fl.client.NumPyClient):
             valloader:
             model_dict:
         """
-        self.net = instantiate(cfg.model)
+        self.net = instantiate(cfg.model).to(cfg.device)
         self.trainloader = trainloader
         self.valloader = valloader
         self.cfg = cfg
