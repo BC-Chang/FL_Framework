@@ -13,7 +13,7 @@ from agg_strats import SaveModelStrategy
 import utils
 
 
-@hydra.main(config_path="docs/config", config_name="config", version_base=None)
+@hydra.main(config_path="conf/", config_name="config", version_base=None)
 def main(cfg: DictConfig) -> None:
     """
     Load model for
