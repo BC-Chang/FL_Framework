@@ -238,7 +238,7 @@ fabric.properties
 
 .idea/FL_Framework.iml
 .idea/misc.xml
-
+.idea/*
 .DS_Store
 training_data/.DS_Store
 
