@@ -14,6 +14,7 @@ from hdf5storage import loadmat  # load matrices
 from network_utils import scale_tensor, get_masks
 
 from features import *
+from flwr.common.parameter import ndarrays_to_parameters
 
 
 def get_device(DEVICE: str=None) -> torch.device:
@@ -67,3 +68,13 @@ def write_yaml(data_list: list, phases: list, filename: str):
     with open(f"./data_input_files/{filename}", "w") as f:
         yaml.dump(data_dict, f)
 
+def model_to_parameters(model):
+    """ Note that the model is already instantiated when passing it here
+
+    This happens because we call this utility function when instantiating the parent
+    object (i.e. the FedAdam strategy in this example).
+    """
+    ndarrays = get_model_parameters(model)
+    parameters = ndarrays_to_parameters(ndarrays)
+
+    return parameters

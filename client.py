@@ -70,7 +70,7 @@ class MSNet_Client(fl.client.NumPyClient):
         Train the client
         Args:
             parameters: Parameters from central model
-            conf: Configuration of the model
+            config: Configuration of the model
 
         Returns:
             Locally updated model parameters and number of training samples
@@ -79,9 +79,12 @@ class MSNet_Client(fl.client.NumPyClient):
         self.set_parameters(parameters)
         # TODO: Optimizer from config file
         optimizer = instantiate(self.cfg.optimizer, params=self.net.parameters())
-
-        results = train(self.net, self.trainloader, self.valloader, optimizer, epochs=config["epochs"],
-                        device=self.cfg.device)
+        if config["Strategy"] == "FedProx":
+            results = train_fedprox(self.net, self.trainloader, self.valloader, optimizer, epochs=config["epochs"],
+                            device=self.cfg.device, proximal_mu=config["proximal_mu"])
+        else:
+            results = train(self.net, self.trainloader, self.valloader, optimizer, epochs=config["epochs"],
+                            device=self.cfg.device)
 
         return self.get_parameters(self.net), len(self.trainloader), {}
 

@@ -73,6 +73,52 @@ def train(net, trainloader, valloader, optimizer, epochs: int, loss_f=nn.MSELoss
 
     return results
 
+def train_fedprox(net, trainloader, valloader, optimizer, epochs: int, proximal_mu: float, loss_f=nn.MSELoss(), device: str="cpu"):
+    # Set up training parameters
+    # optimizer = optimizer_f(net.parameters(), lr=learning_rate)  # Initialize optimizer
+    train_loss = 1e9  # Initialize value of training loss
+    val_loss = 1e9  # Initialize value of validation loss
+    global_params = [param.detach().clone() for param in net.parameters()]
+    net.train()
+
+    # Training loop
+    for epoch in tqdm(range(epochs)):
+        optimizer.zero_grad()
+
+        # Loop through the training batches - Gradient accumulation
+        for _ in range(len(trainloader)):
+            # Get the next batch
+            sample, masks, xy = next(iter(trainloader))
+            x_n, y_n = xy[0], xy[1]
+            # Send data to cpu or gpu
+            masks, x_n, y_n = [[elem.to(device) for elem in data] for data in [masks, x_n, y_n]]
+
+            # compute the model output
+            y_hat = net(x_n, masks)
+            # TODO: Log loss values
+            loss_prev = train_loss
+            train_loss = calc_loss(y_hat, y_n, loss_f)
+            # FedProx term
+            proximal_term = 0.0
+            for param, global_param in zip(net.parameters(), global_params):
+                proximal_term += torch.norm(param - global_param) ** 2
+            train_loss += 0.5*proximal_mu * proximal_term
+            # credit assignment
+            train_loss.backward()
+
+        # update model weights
+        optimizer.step()
+
+        # Compute validation loss
+        # TODO: Get config file for val step instead of hard-coding and log the validation loss
+        if epoch % 1 == 0:
+            val_loss = test(net, valloader, loss_f, device)
+
+        results = {"train_loss": train_loss, "val_loss": val_loss}
+        print(results)
+
+    return results
+
 
 def test(net, testloader, loss_f=nn.MSELoss(), device: str = "cpu"):
     """
