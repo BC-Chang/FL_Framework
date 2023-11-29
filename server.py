@@ -42,7 +42,7 @@ def main(cfg: DictConfig) -> None:
 
     # Start Flower server for four rounds of federated learning
     history = fl.server.start_server(
-        server_address="0.0.0.0:8080",
+        server_address="127.0.0.1:8080",
         config=fl.server.ServerConfig(num_rounds=cfg.num_rounds,
                                       round_timeout=cfg.round_timeout),
         strategy=strategy,
@@ -53,7 +53,8 @@ def main(cfg: DictConfig) -> None:
     # Get global parameters with:
     print(history)
     print("All done :)")
-
+    df = pd.DataFrame(history.losses_centralized, columns=["Round", "Loss_Centralized"])
+    df.to_csv(f"./{save_path}/losses_centralized.csv", index=False)
 
 if __name__ == "__main__":
     main()
