@@ -175,17 +175,17 @@ def get_on_fit_config(config: DictConfig):
     return fit_config_fn
 
 
-def get_evaluate_fn(model_cfg: int, testloader):
+def get_evaluate_fn(model_cfg: int, testloader, device):
     """Return a function to evaluate the global model."""
 
     def evaluate_fn(server_round: int, parameters, config):
-        model = instantiate(model_cfg).to(model_cfg.device)
+        model = instantiate(model_cfg).to(device)
 
         params_dict = zip(model.state_dict().keys(), parameters)
         state_dict = OrderedDict({k: torch.Tensor(v) for k, v in params_dict})
         model.load_state_dict(state_dict, strict=True)
 
-        loss = test(model, testloader, device=model_cfg.device)
+        loss = test(model, testloader, device=device)
 
         return float(loss), {}
 

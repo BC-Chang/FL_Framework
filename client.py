@@ -79,7 +79,7 @@ class MSNet_Client(fl.client.NumPyClient):
         self.set_parameters(parameters)
         # TODO: Optimizer from config file
         optimizer = instantiate(self.cfg.optimizer, params=self.net.parameters())
-        if config["Strategy"] == "FedProx":
+        if self.cfg.strategy == "FedProx":
             results = train_fedprox(self.net, self.trainloader, self.valloader, optimizer, epochs=config["epochs"],
                             device=self.cfg.device, proximal_mu=config["proximal_mu"])
         else:

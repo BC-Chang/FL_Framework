@@ -38,7 +38,7 @@ def main(cfg: DictConfig) -> None:
 
     # TODO: Instantiate a strategy
     strategy = hydra.utils.instantiate(cfg.strategy, evaluate_metrics_aggregation_fn=weighted_average,
-                                       evaluate_fn=get_evaluate_fn(cfg.model, testloader))
+                                       evaluate_fn=get_evaluate_fn(cfg.model, testloader, cfg.device))
 
     # Start Flower server for four rounds of federated learning
     history = fl.server.start_server(
