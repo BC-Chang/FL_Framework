@@ -9,7 +9,7 @@ from omegaconf import DictConfig
 
 from collections import OrderedDict
 
-from utils import get_device, append_xlsx
+from utils import get_device, append_csv
 from tqdm import tqdm
 
 
@@ -194,7 +194,7 @@ def get_evaluate_fn(model_cfg: int, testloader, device: str):
         # Append to end of results excel
         df = pd.DataFrame([[server_round, float(loss)]], columns=["Round", "Loss_Centralized"])
 
-        append_xlsx(df, file=f"{save_path}/round_loss_centralized.xlsx")
+        append_csv(df, file=f"{save_path}/round_loss_centralized.xlsx")
 
         return float(loss), {}
 

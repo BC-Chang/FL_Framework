@@ -1,12 +1,14 @@
 import warnings
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 import flwr as fl
 import torch
 import utils
 from collections import OrderedDict
 from hydra.utils import instantiate
 import hydra
+from hydra.core.hydra_config import HydraConfig
 from omegaconf import DictConfig, OmegaConf
 from tasks import train, test
 import load_data
@@ -97,7 +99,7 @@ class MSNet_Client(fl.client.NumPyClient):
         save_path = HydraConfig.get().runtime.output_dir
         df = pd.DataFrame([[float(loss)]], columns=["Loss_Distributed"])
 
-        append_xlsx(df, file=f"{save_path}/round_loss_distributed.xlsx")
+        utils.append_csv(df, file=f"{save_path}/round_loss_distributed.xlsx")
         return float(loss), len(self.valloader), {"loss": float(loss)}
 
 
