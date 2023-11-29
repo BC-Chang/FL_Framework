@@ -4,9 +4,10 @@ import torch
 import os
 import yaml
 from tqdm import tqdm
+import pandas as pd
+from openpyxl import load_workbook
 
 import numpy as np
-from scipy.ndimage.morphology import distance_transform_edt as edist
 
 import torch
 from hdf5storage import loadmat  # load matrices
@@ -78,3 +79,31 @@ def model_to_parameters(model):
     parameters = ndarrays_to_parameters(ndarrays)
 
     return parameters
+
+
+def append_xlsx(df, file='results.xlsx'):
+    ext = '.xlsx'
+    if ext not in file:
+        file += ext
+    if os.path.exists(file):
+        mode = "a"
+        if_sheet_exists = "overlay"
+        header = False
+
+        wb = load_workbook(file)
+        sheet = wb.worksheets[0]
+        startrow = sheet.max_row
+    else:
+        mode = 'w'
+        if_sheet_exists = None
+        header = True
+        startrow = 0
+
+    with pd.ExcelWriter(file, mode=mode, engine="openpyxl", if_sheet_exists=if_sheet_exists) as writer:
+        df.to_excel(
+            writer,
+            sheet_name="Sheet1",
+            startrow=startrow,
+            header=header,
+            index=False,
+        )

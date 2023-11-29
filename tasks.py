@@ -1,13 +1,15 @@
 import torch.nn as nn
 import torch
 from network_utils import calc_loss
+import pandas as pd
 
 from hydra.utils import instantiate
+from hydra.core.hydra_config import HydraConfig
 from omegaconf import DictConfig
 
 from collections import OrderedDict
 
-from utils import get_device
+from utils import get_device, append_xlsx
 from tqdm import tqdm
 
 
@@ -175,10 +177,12 @@ def get_on_fit_config(config: DictConfig):
     return fit_config_fn
 
 
-def get_evaluate_fn(model_cfg: int, testloader, device):
+def get_evaluate_fn(model_cfg: int, testloader, device: str):
     """Return a function to evaluate the global model."""
 
     def evaluate_fn(server_round: int, parameters, config):
+
+        save_path = HydraConfig.get().runtime.output_dir
         model = instantiate(model_cfg).to(device)
 
         params_dict = zip(model.state_dict().keys(), parameters)
@@ -186,6 +190,11 @@ def get_evaluate_fn(model_cfg: int, testloader, device):
         model.load_state_dict(state_dict, strict=True)
 
         loss = test(model, testloader, device=device)
+
+        # Append to end of results excel
+        df = pd.DataFrame([[server_round, float(loss)]], columns=["Round", "Loss_Centralized"])
+
+        append_xlsx(df, file=f"{save_path}/round_loss_centralized.xlsx")
 
         return float(loss), {}
 

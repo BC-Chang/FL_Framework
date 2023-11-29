@@ -93,6 +93,11 @@ class MSNet_Client(fl.client.NumPyClient):
 
         loss = test(self.net, self.valloader, device=self.cfg.device)
 
+        # Append to end of results excel
+        save_path = HydraConfig.get().runtime.output_dir
+        df = pd.DataFrame([[float(loss)]], columns=["Loss_Distributed"])
+
+        append_xlsx(df, file=f"{save_path}/round_loss_distributed.xlsx")
         return float(loss), len(self.valloader), {"loss": float(loss)}
 
 
