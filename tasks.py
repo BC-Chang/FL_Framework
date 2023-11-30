@@ -51,11 +51,10 @@ def train(net, trainloader, valloader, optimizer, epochs: int, privacy_engine=No
         assert proximal_mu is not None, "FedProx requires proximal_mu to be set"
 
     # Training loop
-    for epoch in tqdm(range(epochs)):
-        optimizer.zero_grad()
-
+    for _ in tqdm(range(epochs)):
         # Loop through the training batches - Gradient accumulation
         for sample, masks, xy in trainloader:
+            optimizer.zero_grad()
             # Get the next batch
             # sample, masks, xy = next(iter(trainloader))
             x_n, y_n = xy[0], xy[1]
@@ -77,15 +76,15 @@ def train(net, trainloader, valloader, optimizer, epochs: int, privacy_engine=No
             # credit assignment
             train_loss.backward()
 
-        # update model weights
-        optimizer.step()
+            # update model weights
+            optimizer.step()
 
         # Compute validation loss
         # TODO: Get config file for val step instead of hard-coding and log the validation loss
-        if epoch % 1 == 0:
-            val_loss = test(net, valloader, loss_f, device)
+        # if epoch % 1 == 0:
+        #     val_loss = test(net, valloader, loss_f, device)
 
-        results = {"train_loss": train_loss, "val_loss": val_loss}
+        results = {"train_loss": train_loss}#, "val_loss": val_loss}
     if privacy_engine is not None:
         target_delta = get_target_delta(len(trainloader.dataset))
         epsilon = privacy_engine.get_epsilon(delta=target_delta)
@@ -113,11 +112,11 @@ def test(net, testloader, loss_f=nn.MSELoss(), device: str = "cpu"):
             Summed loss over the entire test set
     """
 
-    net.to(device)  # move model to specified device
+    # net.to(device)  # move model to specified device
     loss = 0.0
     net.eval()
     with torch.no_grad():
-        for _ in enumerate(testloader):
+        for _ in range(len(testloader)):
             sample, masks, xy = next(iter(testloader))
             x_n, y_n = xy[0], xy[1]
             # Send data to cpu or gpu

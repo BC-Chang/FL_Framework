@@ -44,15 +44,27 @@ class MSNet_Client(fl.client.NumPyClient):
             valloader:
             model_dict:
         """
-        self.net = instantiate(cfg.model).to(cfg.device)
-        self.trainloader = trainloader
+        super().__init__()
+        net = instantiate(cfg.model).to(cfg.device)
+        optimizer = instantiate(cfg.optimizer, params=net.parameters())
+
         self.valloader = valloader
         self.cfg = cfg
 
         if self.cfg.dp.use:
             self.privacy_engine = PrivacyEngine()
+            self.net, self.optimizer, self.trainloader = self.privacy_engine.make_private(
+                module=net,
+                optimizer=optimizer,
+                data_loader=trainloader,
+                max_grad_norm=self.cfg.dp.max_grad_norm,
+                noise_multiplier=self.cfg.dp.noise_multiplier,
+            )
         else:
             self.privacy_engine = None
+            self.net = net
+            self.optimizer = optimizer
+            self.trainloader = trainloader
 
     def get_parameters(self, config):
         """
@@ -86,24 +98,15 @@ class MSNet_Client(fl.client.NumPyClient):
 
         self.set_parameters(parameters)
         # TODO: Optimizer from config file
-        optimizer = instantiate(self.cfg.optimizer, params=self.net.parameters())
-        print(self.trainloader)
-        if self.privacy_engine is not None:
-            self.net, optimizer, self.trainloader = self.privacy_engine.make_private(
-                module=self.net,
-                optimizer=optimizer,
-                data_loader=self.trainloader,
-                max_grad_norm=self.cfg.dp.max_grad_norm,
-                noise_multiplier=self.cfg.dp.noise_multiplier,
-            )
-            print(self.trainloader)
+
+
         proximal_mu = config["proximal_mu"] if self.cfg.strategy == "FedProx" else None
 
-        results = train(self.net, self.trainloader, self.valloader, optimizer, epochs=config["epochs"],
+        results = train(self.net, self.trainloader, self.valloader, self.optimizer, epochs=config["epochs"],
                         privacy_engine=self.privacy_engine, device=self.cfg.device, proximal_mu=proximal_mu,
                         fedprox=self.cfg.strategy == "fedprox")
 
-        return self.get_parameters(self.net), len(self.trainloader), {"epsilon": results["epsilon"]}
+        return self.get_parameters(config={}), len(self.trainloader), {"epsilon": results["epsilon"]}
 
     def evaluate(self, parameters, config):
         self.set_parameters(parameters)
