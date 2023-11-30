@@ -104,3 +104,9 @@ def append_csv(df, file='results.csv'):
         header = True
 
     df.to_csv(file, index=False, header=header, mode=mode)
+
+def get_target_delta(data_size: int) -> float:
+    den = 1
+    while data_size // den >= 1:
+        den *= 10
+    return 1 / den

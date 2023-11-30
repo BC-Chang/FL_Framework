@@ -84,22 +84,19 @@ class MSNet_Client(fl.client.NumPyClient):
         self.set_parameters(parameters)
         # TODO: Optimizer from config file
         optimizer = instantiate(self.cfg.optimizer, params=self.net.parameters())
-        self.net, self.optimizer, self.trainloader = self.privacy_engine.make_private(
-            module = self.net,
-            optimizer=optimizer,
-            data_loader=self.trainloader, # TODO: Add validation loader as well?
-            max_grad_norm=PRIVACY_PARAMS["max_grad_norm"],
-            noise_multiplier=PRIVACY_PARAMS["noise_multiplier"],
+        if self.cfg.dp.use:
+            self.net, optimizer, self.trainloader = self.privacy_engine.make_private(
+                module=self.net,
+                optimizer=optimizer,
+                data_loader=self.trainloader, # TODO: Add validation loader as well?
+                max_grad_norm=self.cfg.max_grad_norm,
+                noise_multiplier=self.noise_multiplier,
+            )
+        results = train(self.net, self.trainloader, self.valloader, optimizer, epochs=config["epochs"],
+                        device=self.cfg.device, proximal_mu=config["proximal_mu"],
+                        fedprox=self.cfg.strategy == "FedProx")
 
-        )
-        if self.cfg.strategy == "FedProx":
-            results = train_fedprox(self.net, self.trainloader, self.valloader, optimizer, epochs=config["epochs"],
-                            device=self.cfg.device, proximal_mu=config["proximal_mu"])
-        else:
-            results = train(self.net, self.trainloader, self.valloader, optimizer, epochs=config["epochs"],
-                            device=self.cfg.device)
-
-        return self.get_parameters(self.net), len(self.trainloader), {}
+        return self.get_parameters(self.net), len(self.trainloader), {"epsilon": results["epsilon"]}
 
     def evaluate(self, parameters, config):
         self.set_parameters(parameters)

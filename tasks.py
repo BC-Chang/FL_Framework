@@ -9,11 +9,12 @@ from omegaconf import DictConfig
 
 from collections import OrderedDict
 
-from utils import get_device, append_csv
+from utils import get_device, append_csv, get_target_delta
 from tqdm import tqdm
 
 
-def train(net, trainloader, valloader, optimizer, epochs: int, privacy_engine, loss_f=nn.MSELoss(), device: str="cpu"):
+def train(net, trainloader, valloader, optimizer, epochs: int, privacy_engine=None,
+          loss_f=nn.MSELoss(), device: str="cpu", fedprox: bool=False, proximal_mu: float=None):
     """
     Function for training loop
     Parameters:
@@ -27,10 +28,14 @@ def train(net, trainloader, valloader, optimizer, epochs: int, privacy_engine, l
             Optimizer, to be instantiated in client
         epochs: int
             Number of epochs to train for
+        privacy_engine: PrivacyEngine
+            Opacus Privacy Engine
         loss_f: torch.nn.Module
             Loss function
         device: str
             Device on which to run the model
+        fedprox: bool
+            Boolean indicating whether to use FedProx or not
     Returns:
         results: Dict
             Dictionary with training and validation losses
@@ -42,46 +47,8 @@ def train(net, trainloader, valloader, optimizer, epochs: int, privacy_engine, l
     val_loss = 1e9  # Initialize value of validation loss
     net.train()
 
-    # Training loop
-    for epoch in tqdm(range(epochs)):
-        optimizer.zero_grad()
-
-        # Loop through the training batches - Gradient accumulation
-        for _ in range(len(trainloader)):
-            # Get the next batch
-            sample, masks, xy = next(iter(trainloader))
-            x_n, y_n = xy[0], xy[1]
-            # Send data to cpu or gpu
-            masks, x_n, y_n = [[elem.to(device) for elem in data] for data in [masks, x_n, y_n]]
-
-            # compute the model output
-            y_hat = net(x_n, masks)
-            # TODO: Log loss values
-            loss_prev = train_loss
-            train_loss = calc_loss(y_hat, y_n, loss_f) / len(trainloader)
-            # credit assignment
-            train_loss.backward()
-
-        # update model weights
-        optimizer.step()
-
-        # Compute validation loss
-        # TODO: Get config file for val step instead of hard-coding and log the validation loss
-        if epoch % 1 == 0:
-            val_loss = test(net, valloader, loss_f, device)
-
-        results = {"train_loss": train_loss, "val_loss": val_loss}
-        print(results)
-
-    return results
-
-def train_fedprox(net, trainloader, valloader, optimizer, epochs: int, privacy_engine, proximal_mu: float, loss_f=nn.MSELoss(), device: str="cpu"):
-    # Set up training parameters
-    # optimizer = optimizer_f(net.parameters(), lr=learning_rate)  # Initialize optimizer
-    train_loss = 1e9  # Initialize value of training loss
-    val_loss = 1e9  # Initialize value of validation loss
-    global_params = [param.detach().clone() for param in net.parameters()]
-    net.train()
+    if fedprox:
+        assert proximal_mu is not None, "FedProx requires proximal_mu to be set"
 
     # Training loop
     for epoch in tqdm(range(epochs)):
@@ -100,11 +67,12 @@ def train_fedprox(net, trainloader, valloader, optimizer, epochs: int, privacy_e
             # TODO: Log loss values
             loss_prev = train_loss
             train_loss = calc_loss(y_hat, y_n, loss_f)
-            # FedProx term
-            proximal_term = 0.0
-            for param, global_param in zip(net.parameters(), global_params):
-                proximal_term += torch.norm(param - global_param) ** 2
-            train_loss += 0.5*proximal_mu * proximal_term
+            # If using FedProx agg strategy
+            if fedprox:
+                proximal_term = 0.0
+                for param, global_param in zip(net.parameters(), global_params):
+                    proximal_term += torch.norm(param - global_param) ** 2
+                train_loss += 0.5*proximal_mu * proximal_term
             train_loss /= len(trainloader)
             # credit assignment
             train_loss.backward()
@@ -118,7 +86,12 @@ def train_fedprox(net, trainloader, valloader, optimizer, epochs: int, privacy_e
             val_loss = test(net, valloader, loss_f, device)
 
         results = {"train_loss": train_loss, "val_loss": val_loss}
-        print(results)
+    if privacy_engine is not None:
+        target_delta = get_target_delta(len(trainloader.dataset))
+        epsilon = privacy_engine.get_epsilon(delta=target_delta)
+        results["epsilon"] = epsilon
+    else:
+        results["epsilon"] = 0.0
 
     return results
 
