@@ -11,6 +11,7 @@ device: cpu
 train_input_file: ???
 test_input_file: test_data.yml
 data_loc: ./training_data
+dp: false
 
 
 config_fit:

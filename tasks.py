@@ -13,7 +13,7 @@ from utils import get_device, append_csv
 from tqdm import tqdm
 
 
-def train(net, trainloader, valloader, optimizer, epochs: int, loss_f=nn.MSELoss(), device: str="cpu"):
+def train(net, trainloader, valloader, optimizer, epochs: int, privacy_engine, loss_f=nn.MSELoss(), device: str="cpu"):
     """
     Function for training loop
     Parameters:
@@ -75,7 +75,7 @@ def train(net, trainloader, valloader, optimizer, epochs: int, loss_f=nn.MSELoss
 
     return results
 
-def train_fedprox(net, trainloader, valloader, optimizer, epochs: int, proximal_mu: float, loss_f=nn.MSELoss(), device: str="cpu"):
+def train_fedprox(net, trainloader, valloader, optimizer, epochs: int, privacy_engine, proximal_mu: float, loss_f=nn.MSELoss(), device: str="cpu"):
     # Set up training parameters
     # optimizer = optimizer_f(net.parameters(), lr=learning_rate)  # Initialize optimizer
     train_loss = 1e9  # Initialize value of training loss

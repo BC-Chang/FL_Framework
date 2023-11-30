@@ -13,6 +13,7 @@ from omegaconf import DictConfig, OmegaConf
 from tasks import train, test
 import load_data
 from network import MS_Net
+from opacus import PrivacyEngine
 
 warnings.filterwarnings("ignore", category=UserWarning)
 class MSNet_Client(fl.client.NumPyClient):
@@ -46,6 +47,8 @@ class MSNet_Client(fl.client.NumPyClient):
         self.net = instantiate(cfg.model).to(cfg.device)
         self.trainloader = trainloader
         self.valloader = valloader
+        self.privacy_engine = PrivacyEngine()
+
         self.cfg = cfg
 
     def get_parameters(self, config):
@@ -81,6 +84,14 @@ class MSNet_Client(fl.client.NumPyClient):
         self.set_parameters(parameters)
         # TODO: Optimizer from config file
         optimizer = instantiate(self.cfg.optimizer, params=self.net.parameters())
+        self.net, self.optimizer, self.trainloader = self.privacy_engine.make_private(
+            module = self.net,
+            optimizer=optimizer,
+            data_loader=self.trainloader, # TODO: Add validation loader as well?
+            max_grad_norm=PRIVACY_PARAMS["max_grad_norm"],
+            noise_multiplier=PRIVACY_PARAMS["noise_multiplier"],
+
+        )
         if self.cfg.strategy == "FedProx":
             results = train_fedprox(self.net, self.trainloader, self.valloader, optimizer, epochs=config["epochs"],
                             device=self.cfg.device, proximal_mu=config["proximal_mu"])
