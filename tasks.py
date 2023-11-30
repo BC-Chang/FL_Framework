@@ -58,7 +58,7 @@ def train(net, trainloader, valloader, optimizer, epochs: int, privacy_engine, l
             y_hat = net(x_n, masks)
             # TODO: Log loss values
             loss_prev = train_loss
-            train_loss = calc_loss(y_hat, y_n, loss_f)
+            train_loss = calc_loss(y_hat, y_n, loss_f) / len(trainloader)
             # credit assignment
             train_loss.backward()
 
@@ -105,6 +105,7 @@ def train_fedprox(net, trainloader, valloader, optimizer, epochs: int, privacy_e
             for param, global_param in zip(net.parameters(), global_params):
                 proximal_term += torch.norm(param - global_param) ** 2
             train_loss += 0.5*proximal_mu * proximal_term
+            train_loss /= len(trainloader)
             # credit assignment
             train_loss.backward()
 
@@ -151,7 +152,7 @@ def test(net, testloader, loss_f=nn.MSELoss(), device: str = "cpu"):
 
             y_hat = net(x_n, masks)
             # TODO: Log loss values
-            loss += calc_loss(y_hat, y_n, loss_f)
+            loss += calc_loss(y_hat, y_n, loss_f)/len(testloader)
 
     return loss
 
@@ -194,7 +195,7 @@ def get_evaluate_fn(model_cfg: int, testloader, device: str):
         # Append to end of results excel
         df = pd.DataFrame([[server_round, float(loss)]], columns=["Round", "Loss_Centralized"])
 
-        append_csv(df, file=f"{save_path}/round_loss_centralized.xlsx")
+        append_csv(df, file=f"{save_path}/round_loss_centralized.csv")
 
         return float(loss), {}
 

@@ -110,7 +110,7 @@ class MSNet_Client(fl.client.NumPyClient):
         save_path = HydraConfig.get().runtime.output_dir
         df = pd.DataFrame([[float(loss)]], columns=["Loss_Distributed"])
 
-        utils.append_csv(df, file=f"{save_path}/round_loss_distributed.xlsx")
+        utils.append_csv(df, file=f"{save_path}/round_loss_distributed.csv")
         return float(loss), len(self.valloader), {"loss": float(loss)}
 
 
