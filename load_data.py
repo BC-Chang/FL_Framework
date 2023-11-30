@@ -68,5 +68,5 @@ def get_dataloader(net_dict, phases):
         dataloader[phase] = DataLoader(data, batch_size=1,
                                        shuffle=(phase == 'train'),
                                        pin_memory=True,
-                                       num_workers=64)
+                                       num_workers=int(os.cpu_count()//2))
     return dataloader

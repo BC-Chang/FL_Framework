@@ -55,9 +55,9 @@ def train(net, trainloader, valloader, optimizer, epochs: int, privacy_engine=No
         optimizer.zero_grad()
 
         # Loop through the training batches - Gradient accumulation
-        for _ in range(len(trainloader)):
+        for _, (sample, masks, xy) in enumerate(trainloader):
             # Get the next batch
-            sample, masks, xy = next(iter(trainloader))
+            # sample, masks, xy = next(iter(trainloader))
             x_n, y_n = xy[0], xy[1]
             # Send data to cpu or gpu
             masks, x_n, y_n = [[elem.to(device) for elem in data] for data in [masks, x_n, y_n]]

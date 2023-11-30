@@ -47,9 +47,12 @@ class MSNet_Client(fl.client.NumPyClient):
         self.net = instantiate(cfg.model).to(cfg.device)
         self.trainloader = trainloader
         self.valloader = valloader
-        self.privacy_engine = PrivacyEngine()
-
         self.cfg = cfg
+
+        if self.cfg.dp.use:
+            self.privacy_engine = PrivacyEngine()
+        else:
+            self.privacy_engine = None
 
     def get_parameters(self, config):
         """
@@ -89,12 +92,14 @@ class MSNet_Client(fl.client.NumPyClient):
                 module=self.net,
                 optimizer=optimizer,
                 data_loader=self.trainloader, # TODO: Add validation loader as well?
-                max_grad_norm=self.cfg.max_grad_norm,
-                noise_multiplier=self.noise_multiplier,
+                max_grad_norm=self.cfg.dp.max_grad_norm,
+                noise_multiplier=self.cfg.dp.noise_multiplier,
             )
+        proximal_mu = config["proximal_mu"] if self.cfg.strategy == "FedProx" else None
+
         results = train(self.net, self.trainloader, self.valloader, optimizer, epochs=config["epochs"],
-                        device=self.cfg.device, proximal_mu=config["proximal_mu"],
-                        fedprox=self.cfg.strategy == "FedProx")
+                        privacy_engine=self.privacy_engine, device=self.cfg.device, proximal_mu=proximal_mu,
+                        fedprox=self.cfg.strategy == "fedprox")
 
         return self.get_parameters(self.net), len(self.trainloader), {"epsilon": results["epsilon"]}
 
