@@ -55,7 +55,7 @@ def train(net, trainloader, valloader, optimizer, epochs: int, privacy_engine=No
         optimizer.zero_grad()
 
         # Loop through the training batches - Gradient accumulation
-        for _, (sample, masks, xy) in enumerate(trainloader):
+        for sample, masks, xy in trainloader:
             # Get the next batch
             # sample, masks, xy = next(iter(trainloader))
             x_n, y_n = xy[0], xy[1]

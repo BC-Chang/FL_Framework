@@ -87,14 +87,16 @@ class MSNet_Client(fl.client.NumPyClient):
         self.set_parameters(parameters)
         # TODO: Optimizer from config file
         optimizer = instantiate(self.cfg.optimizer, params=self.net.parameters())
-        if self.cfg.dp.use:
+        print(self.trainloader)
+        if self.privacy_engine is not None:
             self.net, optimizer, self.trainloader = self.privacy_engine.make_private(
                 module=self.net,
                 optimizer=optimizer,
-                data_loader=self.trainloader, # TODO: Add validation loader as well?
+                data_loader=self.trainloader,
                 max_grad_norm=self.cfg.dp.max_grad_norm,
                 noise_multiplier=self.cfg.dp.noise_multiplier,
             )
+            print(self.trainloader)
         proximal_mu = config["proximal_mu"] if self.cfg.strategy == "FedProx" else None
 
         results = train(self.net, self.trainloader, self.valloader, optimizer, epochs=config["epochs"],
