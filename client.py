@@ -54,13 +54,28 @@ class MSNet_Client(fl.client.NumPyClient):
 
         if self.cfg.dp.use:
             self.privacy_engine = PrivacyEngine()
-            self.net, self.optimizer, self.trainloader = self.privacy_engine.make_private(
-                module=net,
-                optimizer=optimizer,
-                data_loader=trainloader,
-                max_grad_norm=self.cfg.dp.max_grad_norm,
-                noise_multiplier=self.cfg.dp.noise_multiplier,
-            )
+            if self.cfg.dp.target_epsilon is not None:
+                self.net, self.optimizer, self.trainloader = self.privacy_engine.make_private_with_epsilon(
+                    module=net,
+                    optimizer=optimizer,
+                    data_loader=trainloader,
+                    target_epsilon=self.cfg.dp.target_epsilon,
+                    target_delta=self.cfg.dp.target_delta,
+                    epochs=self.cfg.config_fit.local_epochs,
+                    max_grad_norm=self.cfg.dp.max_grad_norm,
+                    #noise_multiplier=self.cfg.dp.noise_multiplier,
+                    poisson_sampling=self.cfg.dp.poisson_sampling
+                )
+            else:
+                assert noise_multiplier is not None, "noise_multiplier cannot be None without specifying target_epsilon"
+                self.net, self.optimizer, self.trainloader = self.privacy_engine.make_private(
+                    module=net,
+                    optimizer=optimizer,
+                    data_loader=trainloader,
+                    max_grad_norm=self.cfg.dp.max_grad_norm,
+                    noise_multiplier=self.cfg.dp.noise_multiplier,
+                    poisson_sampling=self.cfg.dp.poisson_sampling
+                    )
         else:
             self.privacy_engine = None
             self.net = net
@@ -111,11 +126,13 @@ class MSNet_Client(fl.client.NumPyClient):
                         fedprox=self.cfg.strategy == "fedprox")
         end_time = perf_counter_ns()
         print(f"Time taken to fit: {end_time - start_time} ns")
-        save_path = HydraConfig.get().runtime.output_dir
-        df = pd.DataFrame([results["epsilon"]], columns=["Epsilon"])
 
-        utils.append_csv(df, file=f"{save_path}/epsilon.csv")
-        return self.get_parameters(config={}), len(self.trainloader), {"epsilon": results["epsilon"]}
+        #save_path = HydraConfig.get().runtime.output_dir
+        #df = pd.DataFrame([results["epsilon"]], columns=["Epsilon"])
+
+
+        #utils.append_csv(df, file=f"{save_path}/epsilon.csv")
+        return self.get_parameters(config={}), len(self.trainloader), {}#"epsilon": results["epsilon"]}
 
     def evaluate(self, parameters, config):
         self.set_parameters(parameters)
