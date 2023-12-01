@@ -85,12 +85,13 @@ def train(net, trainloader, valloader, optimizer, epochs: int, privacy_engine=No
         #     val_loss = test(net, valloader, loss_f, device)
 
         results = {"train_loss": train_loss}#, "val_loss": val_loss}
-    if privacy_engine is not None:
-        target_delta = get_target_delta(len(trainloader.dataset))
-        epsilon = privacy_engine.get_epsilon(delta=target_delta)
-        results["epsilon"] = epsilon
-    else:
-        results["epsilon"] = 0.0
+    #if privacy_engine is not None:
+    #    target_delta = get_target_delta(len(trainloader.dataset))
+    #    epsilon = privacy_engine.accountant.get_epsilon(delta=1e-5)
+    #    print(f"{epsilon = }")
+    #    results["epsilon"] = epsilon
+    #else:
+    #    results["epsilon"] = 0.0
 
     return results
 
