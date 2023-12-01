@@ -105,7 +105,10 @@ class MSNet_Client(fl.client.NumPyClient):
         results = train(self.net, self.trainloader, self.valloader, self.optimizer, epochs=config["epochs"],
                         privacy_engine=self.privacy_engine, device=self.cfg.device, proximal_mu=proximal_mu,
                         fedprox=self.cfg.strategy == "fedprox")
+        save_path = HydraConfig.get().runtime.output_dir
+        df = pd.DataFrame([results["epsilon"]], columns=["Epsilon"])
 
+        utils.append_csv(df, file=f"{save_path}/epsilon.csv")
         return self.get_parameters(config={}), len(self.trainloader), {"epsilon": results["epsilon"]}
 
     def evaluate(self, parameters, config):
