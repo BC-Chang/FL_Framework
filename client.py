@@ -14,6 +14,7 @@ from tasks import train, test
 import load_data
 from network import MS_Net
 from opacus import PrivacyEngine
+from time import perf_counter_ns
 
 warnings.filterwarnings("ignore", category=UserWarning)
 class MSNet_Client(fl.client.NumPyClient):
@@ -81,9 +82,12 @@ class MSNet_Client(fl.client.NumPyClient):
         Returns:
 
         """
+        start_time = perf_counter_ns()
         params_dict = zip(self.net.state_dict().keys(), parameters)
         state_dict = OrderedDict({k: torch.tensor(v) for k, v in params_dict})
         self.net.load_state_dict(state_dict, strict=True)
+        end_time = perf_counter_ns()
+        print(f"Time taken to set parameters: {end_time - start_time} ns")
 
     def fit(self, parameters, config):
         """
@@ -99,12 +103,14 @@ class MSNet_Client(fl.client.NumPyClient):
         self.set_parameters(parameters)
         # TODO: Optimizer from config file
 
-
+        start_time = perf_counter_ns()
         proximal_mu = config["proximal_mu"] if self.cfg.strategy == "FedProx" else None
 
         results = train(self.net, self.trainloader, self.valloader, self.optimizer, epochs=config["epochs"],
                         privacy_engine=self.privacy_engine, device=self.cfg.device, proximal_mu=proximal_mu,
                         fedprox=self.cfg.strategy == "fedprox")
+        end_time = perf_counter_ns()
+        print(f"Time taken to fit: {end_time - start_time} ns")
         save_path = HydraConfig.get().runtime.output_dir
         df = pd.DataFrame([results["epsilon"]], columns=["Epsilon"])
 
@@ -113,9 +119,10 @@ class MSNet_Client(fl.client.NumPyClient):
 
     def evaluate(self, parameters, config):
         self.set_parameters(parameters)
-
+        start_time = perf_counter_ns()
         loss = test(self.net, self.valloader, device=self.cfg.device)
-
+        end_time = perf_counter_ns()
+        print(f"Time taken to evaluate: {end_time - start_time} ns")
         # Append to end of results excel
         save_path = HydraConfig.get().runtime.output_dir
         df = pd.DataFrame([[float(loss)]], columns=["Loss_Distributed"])
