@@ -7,10 +7,9 @@ from hdf5storage import loadmat
 
 
 def check_inputs(input_dict, phase):
-    assert len(input_dict[f'{phase}_sample']) == \
-           len(input_dict[f'{phase}_subsample']) == \
-           len(input_dict[f'{phase}_size']) == \
-           len(input_dict[f'{phase}_pressure'])
+    assert len(input_dict[f'{phase}_client']) == \
+           len(input_dict[f'{phase}_sample']) == \
+           len(input_dict[f'{phase}_size'])
 
 
 def get_fields(net_dict, phase):
@@ -23,15 +22,18 @@ def get_fields(net_dict, phase):
     Returns:
 
     """
-    samples = net_dict[f'{phase}_sample']
+    clients = net_dict[f'{phase}_client'] * len(net_dict[f'{phase}_sample'])
     try:
-        subsamples = [format(x, '02') for x in net_dict[f'{phase}_subsample']]
+        # subsamples = [format(x, '02') for x in net_dict[f'{phase}_sample']]
+        # 3 digits with leading zeros
+        samples = [f"{x:03d}" for x in net_dict[f'{phase}_sample']]
     except ValueError:  # if the string is correctly formatted
-        subsamples = net_dict[f'{phase}_subsample']
-    sizes = net_dict[f'{phase}_size']
-    pressures = net_dict[f'{phase}_pressure']
+        samples = net_dict[f'{phase}_sample']
 
-    return samples, subsamples, sizes, pressures
+    # Assume all sizes are equal
+    sizes = net_dict[f'{phase}_size'] * len(net_dict[f'{phase}_sample'])
+
+    return clients, samples, sizes
 
 
 def get_sample(net_dict, sample_name):
@@ -57,8 +59,11 @@ def load_samples(feat, sample_name, net_dict, xform=None):
     path = data_dict.get(feat, data_dict.get('bin'))['path']
 
     # TODO: load data using tifffile instead
-    sample = loadmat(f'{path}/{sample_name}{data_dict.get(feat, data_dict.get("bin"))["ext"]}.mat')[
-        data_dict.get(feat, data_dict.get("bin"))["dkey"]]
+    # sample = loadmat(f'{path}/{sample_name}{data_dict.get(feat, data_dict.get("bin"))["ext"]}.mat')[
+    #     data_dict.get(feat, data_dict.get("bin"))["dkey"]]
+
+
+    sample = tifffile.imread(f'{path}/{sample_name}{data_dict.get(feat, data_dict.get("bin"))["ext"]}.tiff')
 
     # if feat == 'bin':
     #    sample = -1*sample + 1
@@ -82,7 +87,7 @@ def load_samples(feat, sample_name, net_dict, xform=None):
                     'porosity': slicewise_porosity,
                     'linear': linear_trend}
 
-    if not (feat == 'phi' or feat == 'Iz'):
+    if not (feat == 'phi' or feat == 'Iz' or feat == 'vel'):
         assert feat in feature_dict, NotImplemented(
             "Selected feature has not been implemented. Please add it to features.py")
         # Inverted binary image
