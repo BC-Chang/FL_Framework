@@ -54,7 +54,7 @@ def load_samples(feat, sample_name, net_dict, xform=None):
     data_dict = {'bin': {'path': f'{net_dict["data_loc"]}/bin', 'dkey': 'bin', 'ext': 'bin'},
                  'phi': {'path': f'{net_dict["data_loc"]}/elec', 'dkey': 'phi', 'ext': 'elec'},
                  'Iz': {'path': f'{net_dict["data_loc"]}/elec', 'dkey': 'Iz', 'ext': 'elec'},
-                 'vel': {'path': f'{net_dict["data_loc"]}/vel', 'dkey': 'uz', 'ext': 'vel'}}
+                 'vel': {'path': f'{net_dict["data_loc"]}/vel', 'dkey': 'uz', 'ext': 'uz'}}
 
     path = data_dict.get(feat, data_dict.get('bin'))['path']
 

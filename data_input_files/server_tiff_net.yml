@@ -1,0 +1,18 @@
+test_client:
+ - 0
+test_sample:
+ - 4
+test_size:
+ - 256
+
+x_array:
+ - 'bin'
+
+y_array:
+ - 'vel'
+
+x_xform:
+ - None
+ 
+y_xform:
+ - None
