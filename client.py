@@ -1,12 +1,14 @@
 import warnings
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 import flwr as fl
 import torch
 import utils
 from collections import OrderedDict
 from hydra.utils import instantiate
 import hydra
+from hydra.core.hydra_config import HydraConfig
 from omegaconf import DictConfig, OmegaConf
 from tasks import train, test
 import load_data
@@ -41,7 +43,7 @@ class MSNet_Client(fl.client.NumPyClient):
             valloader:
             model_dict:
         """
-        self.net = instantiate(cfg.model)
+        self.net = instantiate(cfg.model).to(cfg.device)
         self.trainloader = trainloader
         self.valloader = valloader
         self.cfg = cfg
@@ -70,7 +72,7 @@ class MSNet_Client(fl.client.NumPyClient):
         Train the client
         Args:
             parameters: Parameters from central model
-            conf: Configuration of the model
+            config: Configuration of the model
 
         Returns:
             Locally updated model parameters and number of training samples
@@ -79,9 +81,12 @@ class MSNet_Client(fl.client.NumPyClient):
         self.set_parameters(parameters)
         # TODO: Optimizer from config file
         optimizer = instantiate(self.cfg.optimizer, params=self.net.parameters())
-
-        results = train(self.net, self.trainloader, self.valloader, optimizer, epochs=config["epochs"],
-                        device=self.cfg.device)
+        if self.cfg.strategy == "FedProx":
+            results = train_fedprox(self.net, self.trainloader, self.valloader, optimizer, epochs=config["epochs"],
+                            device=self.cfg.device, proximal_mu=config["proximal_mu"])
+        else:
+            results = train(self.net, self.trainloader, self.valloader, optimizer, epochs=config["epochs"],
+                            device=self.cfg.device)
 
         return self.get_parameters(self.net), len(self.trainloader), {}
 
@@ -90,6 +95,11 @@ class MSNet_Client(fl.client.NumPyClient):
 
         loss = test(self.net, self.valloader, device=self.cfg.device)
 
+        # Append to end of results excel
+        save_path = HydraConfig.get().runtime.output_dir
+        df = pd.DataFrame([[float(loss)]], columns=["Loss_Distributed"])
+
+        utils.append_csv(df, file=f"{save_path}/round_loss_distributed.xlsx")
         return float(loss), len(self.valloader), {"loss": float(loss)}
 
 
@@ -98,9 +108,9 @@ def main(cfg: DictConfig) -> None:
 
     # TODO: Load data from a specific datafile
     # Load local data partition
-    trainset, valset = load_data.load_data(cfg.data_input_file, path_to_data=cfg.data_loc, phases=["train", "val"])
+    trainset, valset = load_data.load_data(cfg.train_input_file, path_to_data=cfg.data_loc, phases=["train", "val"])
 
-    # TODO: Instantiate Flower client
+    # Instantiate Flower client
     client = MSNet_Client(trainset, valset, cfg)
 
 

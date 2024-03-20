@@ -34,15 +34,15 @@ def main(cfg: DictConfig) -> None:
     model_parameters = utils.get_model_parameters(model)
 
     # Centralized test data
-    testloader = load_data.load_data("test_net.yml", phases=['test'])[0]
+    testloader = load_data.load_data(cfg.test_input_file, path_to_data=cfg.data_loc, phases=['test'])[0]
 
     # TODO: Instantiate a strategy
     strategy = hydra.utils.instantiate(cfg.strategy, evaluate_metrics_aggregation_fn=weighted_average,
-                                       evaluate_fn=get_evaluate_fn(cfg.model, testloader))
+                                       evaluate_fn=get_evaluate_fn(cfg.model, testloader, cfg.device))
 
     # Start Flower server for four rounds of federated learning
     history = fl.server.start_server(
-        server_address="0.0.0.0:8080",
+        server_address="127.0.0.1:8080",
         config=fl.server.ServerConfig(num_rounds=cfg.num_rounds,
                                       round_timeout=cfg.round_timeout),
         strategy=strategy,
@@ -53,7 +53,8 @@ def main(cfg: DictConfig) -> None:
     # Get global parameters with:
     print(history)
     print("All done :)")
-
+    df = pd.DataFrame(history.losses_centralized, columns=["Round", "Loss_Centralized"])
+    df.to_csv(f"./{save_path}/losses_centralized.csv", index=False)
 
 if __name__ == "__main__":
     main()

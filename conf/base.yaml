@@ -1,20 +1,21 @@
 ---
 
-num_rounds: 1
+num_rounds: 10
 round_timeout: !!null
-num_clients: 1
+num_clients: 2
 batch_size: 1
-num_clients_per_round_fit: 1
-num_clients_per_round_eval: 1
+num_clients_per_round_fit: 2
+num_clients_per_round_eval: 2
 device: cpu
 
-data_input_file: ???
+train_input_file: ???
+test_input_file: test_data.yml
 data_loc: ./training_data
 
 
 config_fit:
   lr: 1.e-5
-  local_epochs: 2
+  local_epochs: 1
 
 defaults:
   - model: msnet
