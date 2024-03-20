@@ -67,7 +67,7 @@ class MSNet_Client(fl.client.NumPyClient):
                     poisson_sampling=self.cfg.dp.poisson_sampling
                 )
             else:
-                assert noise_multiplier is not None, "noise_multiplier cannot be None without specifying target_epsilon"
+                assert self.cfg.dp.noise_multiplier is not None, "noise_multiplier cannot be None without specifying target_epsilon"
                 self.net, self.optimizer, self.trainloader = self.privacy_engine.make_private(
                     module=net,
                     optimizer=optimizer,
@@ -102,7 +102,7 @@ class MSNet_Client(fl.client.NumPyClient):
         state_dict = OrderedDict({k: torch.tensor(v) for k, v in params_dict})
         self.net.load_state_dict(state_dict, strict=True)
         end_time = perf_counter_ns()
-        print(f"Time taken to set parameters: {end_time - start_time} ns")
+        #print(f"Time taken to set parameters: {end_time - start_time} ns")
 
     def fit(self, parameters, config):
         """
@@ -125,7 +125,7 @@ class MSNet_Client(fl.client.NumPyClient):
                         privacy_engine=self.privacy_engine, device=self.cfg.device, proximal_mu=proximal_mu,
                         fedprox=self.cfg.strategy == "fedprox")
         end_time = perf_counter_ns()
-        print(f"Time taken to fit: {end_time - start_time} ns")
+        #print(f"Time taken to fit: {end_time - start_time} ns")
 
         #save_path = HydraConfig.get().runtime.output_dir
         #df = pd.DataFrame([results["epsilon"]], columns=["Epsilon"])
@@ -139,7 +139,7 @@ class MSNet_Client(fl.client.NumPyClient):
         start_time = perf_counter_ns()
         loss = test(self.net, self.valloader, device=self.cfg.device)
         end_time = perf_counter_ns()
-        print(f"Time taken to evaluate: {end_time - start_time} ns")
+        #print(f"Time taken to evaluate: {end_time - start_time} ns")
         # Append to end of results excel
         save_path = HydraConfig.get().runtime.output_dir
         df = pd.DataFrame([[float(loss)]], columns=["Loss_Distributed"])
