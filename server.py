@@ -36,7 +36,7 @@ def main(cfg: DictConfig) -> None:
     # Centralized test data
     testloader = load_data.load_data(cfg.test_input_file, path_to_data=cfg.data_loc, phases=['test'])[0]
 
-    # TODO: Instantiate a strategy
+    # Instantiate a strategy
     strategy = hydra.utils.instantiate(cfg.strategy, evaluate_metrics_aggregation_fn=weighted_average,
                                        evaluate_fn=get_evaluate_fn(cfg.model, testloader, cfg.device))
 

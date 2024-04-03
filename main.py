@@ -3,21 +3,34 @@ import hydra
 from omegaconf import DictConfig
 
 # FL Libraries
-# import flwr as fl
 import torch
-# from agg_strats import SaveModelStrategy
+
+# Hydra Packages
+import hydra
+from hydra.utils import instantiate
+from omegaconf import DictConfig
 
 # Utility Packages
 from utils import get_device
+import load_data
+from tasks import train
 
+@hydra.main(config_path="conf/", config_name="base", version_base=None)
+def main(cfg: DictConfig) -> None:
 
-@hydra.main(config_path="docs/config", config_name="config", version_base=None)
-def main(cfg: DictConfig):
-    """
-    Main function to run MS-Net federated learning
-    :param cfg: An omegaconf object that stores the hydra config.
-    :return:
-    """
+    # Instantiate an ms-net model
+    net = instantiate(cfg.model).to(cfg.device)
+
+    # Instantiate an optimizer
+    optimizer = instantiate(cfg.optimizer, params=net.parameters())
+
+    # TODO: Load data from a specific datafile
+    # Load local data partition
+    trainset, valset = load_data.load_data(cfg.train_input_file, path_to_data=cfg.data_loc, phases=["train", "val"])
+
+    # Train the model
+    train(net, trainset, valset, optimizer, epochs=100, device=cfg.device)
+
 
 
 if __name__ == "__main__":

@@ -6,6 +6,7 @@ from input_features import *
 from hdf5storage import loadmat
 
 
+
 def check_inputs(input_dict, phase):
     assert len(input_dict[f'{phase}_client']) == \
            len(input_dict[f'{phase}_sample']) == \
@@ -103,7 +104,7 @@ def load_samples(feat, sample_name, net_dict, xform=None):
         del sample_copy
 
     sample[~np.isfinite(sample)] = 0
-    sample = zero_bounds(sample)
+    # sample = zero_bounds(sample)
 
     return sample
 
