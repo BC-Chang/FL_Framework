@@ -49,11 +49,11 @@ def get_dataloader(net_dict, phases):
 
     dataloader = {}
     for phase in phases:
-        check_inputs(net_dict, phase)
-        samples, subsamples, sizes, pressures = get_fields(net_dict, phase)
+        #check_inputs(net_dict, phase)
+        client, samples, sizes = get_fields(net_dict, phase)
         data = []
 
-        for num, name_tuple in enumerate(zip(samples, subsamples, sizes, pressures)):
+        for num, name_tuple in enumerate(zip(client, samples, sizes)):
             if num != 0:
                 if num < 0 or num > 1000:  # memory limit
                     continue
