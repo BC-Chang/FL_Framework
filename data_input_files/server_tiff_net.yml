@@ -1,7 +1,7 @@
 test_client:
  - 0
 test_sample:
- - 4
+ - 0
 test_size:
  - 256
 
@@ -15,4 +15,4 @@ x_xform:
  - None
  
 y_xform:
- - None
+ - minMax

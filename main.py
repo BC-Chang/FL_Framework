@@ -29,7 +29,7 @@ def main(cfg: DictConfig) -> None:
     trainset, valset = load_data.load_data(cfg.train_input_file, path_to_data=cfg.data_loc, phases=["train", "val"])
 
     # Train the model
-    train(net, trainset, valset, optimizer, epochs=100, device=cfg.device)
+    train(net, trainset, valset, optimizer, epochs=100, batch_size=1, val_interval=10, device=cfg.device)
 
 
 

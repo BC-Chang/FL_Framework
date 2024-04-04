@@ -13,7 +13,7 @@ from utils import get_device, append_csv
 from tqdm import tqdm
 
 
-def train(net, trainloader, valloader, optimizer, epochs: int, loss_f=nn.MSELoss(), device: str="cpu"):
+def train(net, trainloader, valloader, optimizer, epochs: int, loss_f=nn.MSELoss(), batch_size=1, val_interval=10, device: str="cpu"):
     """
     Function for training loop
     Parameters:
@@ -47,27 +47,30 @@ def train(net, trainloader, valloader, optimizer, epochs: int, loss_f=nn.MSELoss
         optimizer.zero_grad()
 
         # Loop through the training batches - Gradient accumulation
-        for _ in range(len(trainloader)):
+        for i in range(len(trainloader)):
             # Get the next batch
             sample, masks, xy = next(iter(trainloader))
             x_n, y_n = xy[0], xy[1]
             # Send data to cpu or gpu
             masks, x_n, y_n = [[elem.to(device) for elem in data] for data in [masks, x_n, y_n]]
 
-            # compute the model output
-            y_hat = net(x_n, masks)
-            # TODO: Log loss values
-            loss_prev = train_loss
-            train_loss = calc_loss(y_hat, y_n, loss_f)
-            # credit assignment
-            train_loss.backward()
+            with torch.set_grad_enabled(True):
+                # compute the model output
+                y_hat = net(x_n, masks)
+                # TODO: Log loss values
+                loss_prev = train_loss
+                train_loss = calc_loss(y_hat, y_n, loss_f)
+                # credit assignment
+                train_loss.backward()
 
-        # update model weights
-        optimizer.step()
+                # update model weights
+                if ((i+1) % batch_size == 0) or ((i+1) == len(trainloader)):
+                    optimizer.step()
+                    optimizer.zero_grad()
 
         # Compute validation loss
         # TODO: Get config file for val step instead of hard-coding and log the validation loss
-        if epoch % 10 == 0:
+        if epoch % val_interval == 0:
             val_loss = test(net, valloader, loss_f, device)
 
         results = {"train_loss": train_loss, "val_loss": val_loss}
@@ -173,6 +176,8 @@ def get_on_fit_config(config: DictConfig):
         return {
             "lr": config.lr,
             "epochs": config.local_epochs,
+            "batch_size": config.batch_size,
+            "val_interval": config.val_interval
         }
     return fit_config_fn
 

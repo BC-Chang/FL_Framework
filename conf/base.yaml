@@ -16,6 +16,8 @@ data_loc: ./training_data
 config_fit:
   lr: 1.e-5
   local_epochs: 1
+  batch_size: 1
+  val_interval: 10
 
 defaults:
   - model: msnet

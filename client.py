@@ -86,7 +86,7 @@ class MSNet_Client(fl.client.NumPyClient):
                             device=self.cfg.device, proximal_mu=config["proximal_mu"])
         else:
             results = train(self.net, self.trainloader, self.valloader, optimizer, epochs=config["epochs"],
-                            device=self.cfg.device)
+                            batch_size=config["batch_size"], val_interval=config["val_interval"], device=self.cfg.device)
 
         return self.get_parameters(self.net), len(self.trainloader), {}
 
