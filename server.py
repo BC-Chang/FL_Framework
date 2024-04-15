@@ -15,10 +15,15 @@ import utils
 from tasks import weighted_average, get_evaluate_fn, get_on_fit_config
 import load_data
 import pandas as pd
-
+from pathlib import Path
 # Set GRPC Poll strategy. epollex is standard implementation, but it causes a bug. Use epoll1 instead
 import os
 os.environ["GRPC_POLL_STRATEGY"] = "epoll1"
+
+# Get IP
+import socket
+ip_address = socket.gethostbyname((socket.gethostname()))
+server_address = ip_address + ":11225"
 
 @hydra.main(config_path="conf/", config_name="base", version_base=None)
 def main(cfg: DictConfig) -> None:
@@ -46,11 +51,15 @@ def main(cfg: DictConfig) -> None:
 
     # Start Flower server for four rounds of federated learning
     history = fl.server.start_server(
-        server_address="127.0.0.1:8080",
+        server_address=server_address,
         config=fl.server.ServerConfig(num_rounds=cfg.num_rounds,
                                       round_timeout=cfg.round_timeout),
         strategy=strategy,
         # TODO: Add security certificates here if needed
+        #certificates=(
+        #    Path("/home/bchang/flower/examples/advanced-tensorflow/.cache/certificates/ca.crt").read_bytes(),
+        #    Path("/home/bchang/flower/examples/advanced-tensorflow/.cache/certificates/server.pem").read_bytes(),
+         #   Path("/home/bchang/flower/examples/advanced-tensorflow/.cache/certificates/server.key").read_bytes(),)
         # https://github.com/adap/flower/blob/821d843278e60c55acdfb3574de8958c26f7a644/src/py/flwr/server/app.py#L117
     )
 
