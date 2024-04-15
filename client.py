@@ -13,6 +13,9 @@ from omegaconf import DictConfig, OmegaConf
 from tasks import train, test
 import load_data
 from network import MS_Net
+import os
+from pathlib import Path
+os.environ['CURL_CA_BUNDLE'] = ''
 
 warnings.filterwarnings("ignore", category=UserWarning)
 class MSNet_Client(fl.client.NumPyClient):
@@ -113,13 +116,13 @@ def main(cfg: DictConfig) -> None:
     # Instantiate Flower client
     client = MSNet_Client(trainset, valset, cfg)
 
-
     # Start Flower client
-    fl.client.start_numpy_client(server_address="127.0.0.1:8080",
+    fl.client.start_client(server_address="129.114.35.162:11225",
                                  client=client,
+                           root_certificates=Path(".cache/certificates/ca.crt").read_bytes(),
                                  # TODO: Add security certificates if needed
                                  # https://github.com/adap/flower/blob/821d843278e60c55acdfb3574de8958c26f7a644/src/py/flwr/client/app.py#L242
-                                 )
+                                 ).to_client()
 
 if __name__ == "__main__":
     main()

@@ -1,6 +1,6 @@
 import numpy as np
 import porespy as ps
-from scipy.ndimage.morphology import distance_transform_edt as edist
+from scipy.ndimage import distance_transform_edt as edist
 from typing import Tuple
 
 

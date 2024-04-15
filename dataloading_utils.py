@@ -27,7 +27,7 @@ def get_fields(net_dict, phase):
     try:
         # subsamples = [format(x, '02') for x in net_dict[f'{phase}_sample']]
         # 3 digits with leading zeros
-        samples = [f"{x:03d}" for x in net_dict[f'{phase}_sample']]
+        samples = [f"{x:04d}" for x in net_dict[f'{phase}_sample']]
     except ValueError:  # if the string is correctly formatted
         samples = net_dict[f'{phase}_sample']
 
