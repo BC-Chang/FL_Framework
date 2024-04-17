@@ -117,12 +117,12 @@ def main(cfg: DictConfig) -> None:
     client = MSNet_Client(trainset, valset, cfg)
 
     # Start Flower client
-    fl.client.start_client(server_address="129.114.35.162:11225",
-                                 client=client,
-                           root_certificates=Path(".cache/certificates/ca.crt").read_bytes(),
+    fl.client.start_client(server_address="129.114.35.162:443",
+                           client=client.to_client(),
+                           #root_certificates=Path("/etc/ssl/certs/ISRG_Root_X1.pem").read_bytes(),
                                  # TODO: Add security certificates if needed
                                  # https://github.com/adap/flower/blob/821d843278e60c55acdfb3574de8958c26f7a644/src/py/flwr/client/app.py#L242
-                                 ).to_client()
+                                 )#.to_client()
 
 if __name__ == "__main__":
     main()
