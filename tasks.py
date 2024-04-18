@@ -181,7 +181,7 @@ def get_on_fit_config(config: DictConfig):
             "epochs": config.local_epochs,
             "batch_size": config.batch_size,
             "val_interval": config.val_interval,
-            "model_dir": config.model_dir
+            #"model_dir": config.model_dir
         }
     return fit_config_fn
 

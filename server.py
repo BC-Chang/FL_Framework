@@ -78,7 +78,7 @@ def main(cfg: DictConfig) -> None:
     print(history)
     print("All done :)")
     df = pd.DataFrame(history.losses_centralized, columns=["Round", "Loss_Centralized"])
-    df.to_csv(f"./{save_path}/losses_centralized.csv", index=False)
+    df.to_csv(f"{save_path}/losses_centralized.csv", index=False)
 
 if __name__ == "__main__":
     main()

@@ -64,7 +64,7 @@ def load_samples(feat, sample_name, net_dict, xform=None):
     #     data_dict.get(feat, data_dict.get("bin"))["dkey"]]
 
 
-    sample = tifffile.imread(f'{path}/{sample_name}{data_dict.get(feat, data_dict.get("bin"))["ext"]}.tiff')
+    sample = tifffile.imread(f'{path}/{sample_name}{data_dict.get(feat, data_dict.get("bin"))["ext"]}.tif')
 
     # if feat == 'bin':
     #    sample = -1*sample + 1
