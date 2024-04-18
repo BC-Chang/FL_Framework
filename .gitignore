@@ -247,3 +247,5 @@ outputs/
 lightning_logs/
 client_model/
 server_models/
+BP_credentials.sh
+Petrobras_credentials.sh

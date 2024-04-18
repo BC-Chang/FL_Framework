@@ -1,10 +1,14 @@
 #!/bin/bash
 
 # FTPS server details
-HOST=
-USERNAME=
-PASSWORD=
-REMOTE_DIR=
+if [[ "$1" == "bp" ]]; then
+    echo "Loading BP FTPS credentials..."
+    source bp_credentials.sh
+elif [[ "$1" == "petrobras" ]]; then
+    echo "Loading Petrobras FTPS credentials..."
+    source petrobras_credentials.sh
+else
+    echo "Invalid argument"
 
 # File to store the previous file listing
 PREV_LIST_FILE="previous_file_list.txt"
@@ -19,7 +23,7 @@ get_file_listing() {
 download_new_folders() {
     diff --unchanged-line-format="" "$PREV_LIST_FILE" "$CURRENT_LIST_FILE" | grep -v '^$' | while read -r folder; do
         echo "Downloading new folder: $folder"
-        lftp -u "$USERNAME","$PASSWORD" "ftps://$HOST$REMOTE_DIR" -e "mirror --only-newer $folder ./downloaded_folders/$folder; exit"
+        lftp -u "$USERNAME","$PASSWORD" "ftps://$HOST$REMOTE_DIR" -e "mirror --only-newer $folder ./$1/$folder; exit"
     done
 }
 
