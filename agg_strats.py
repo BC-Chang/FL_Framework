@@ -17,13 +17,13 @@ from network import MS_Net
 class SaveFedAvg(FedAvg):
     def __init__(self, model_dict, *args, **kwargs):
         # self.save_path = save_path
-
+        
         self.net = MS_Net(num_scales=model_dict['num_scales'],
                           num_features=model_dict['num_features'],
                           num_filters=model_dict['num_filters'],
-                          device=model_dict['device'],
                           f_mult=model_dict['f_mult'],
-                          summary=False).to(model_dict['device'])
+                          summary=False)
+        self.model_dict = model_dict
         super().__init__(*args, **kwargs)
 
     def aggregate_fit(self, rnd: int, results, failures,):
@@ -39,9 +39,9 @@ class SaveFedAvg(FedAvg):
 
             # Save the model
             print(f"Saving round {rnd} weights...")
-            trainer = Trainer(model=self.net, max_epochs=0, max_steps=0, default_root_dir="server_models")
-            trainer.save_checkpoint(f"./server_round_{rnd}.ckpt")
-            # torch.save(self.net.state_dict(), f"./server_models/server_round_{rnd}.ckpt")
+            #trainer = Trainer(accelerator="auto", max_epochs=0, max_steps=0, default_root_dir="server_models", enable_checkpointing=False)
+            #trainer.save_checkpoint(f"./server_round_{rnd}.ckpt", weights_only=True)
+            torch.save(self.net.state_dict(), f"./server_models/server_round_{self.model_dict["round"]}.ckpt")
 
         return aggregated_parameters, aggregated_metrics
 

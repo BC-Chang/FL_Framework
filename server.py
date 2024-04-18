@@ -1,10 +1,13 @@
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+
 import hydra
 from hydra.core.hydra_config import HydraConfig
 from omegaconf import DictConfig
 
 # FL & ML parameters
 import flwr as fl
-# import torch
+import torch
 # from agg_strats import SaveFedAvg
 # from flwr.server.strategy import FedAvg
 from network import MS_Net
@@ -34,30 +37,33 @@ def main(cfg: DictConfig) -> None:
     # Parse config * get experiment output directory
     save_path = HydraConfig.get().runtime.output_dir
 
-    # TODO: Allow option to load from checkpoint
-    model_dir = Path(f'lightning_logs/round_{cfg.round}')
-    model_loc = list(model_dir.glob('*.ckpt'))[-1]
-    print(f"Attempting model load from {str(model_dir)}")
+    model = hydra.utils.instantiate(cfg.model)
+    
+    # Try to load from checkpoint
+    try:
+        model_dir = Path(f"./server_models/")
+        model_loc = list(model_dir.glob(f"server_round_{cfg.round-1}.ckpt"))[-1]
+        print(model_loc)
+        print(f"Attempting model load from {str(model_loc)}")
+        ckpt = torch.load(model_loc)
+        model.load_state_dict(ckpt)
+        print(f"Successfully loaded server model from round {cfg.round-1}!")
 
-    yaml_dict = load_data.load_hparams(list(model_dir.glob("lightning_logs/version_*/hparams.yaml"))[-1])
-    model = MS_Net.load_from_checkpoint(model_loc,
-                                        net_name=yaml_dict['net_name'],
-                                        num_scales=yaml_dict['num_scales'],
-                                        num_features=yaml_dict['num_features'],
-                                        num_filters=yaml_dict['num_filters'],
-                                        f_mult=yaml_dict['f_mult'],
-                                        summary=False)
-
-    model = hydra.utils.instantiate(cfg.model).to(cfg.device)
+    except (FileNotFoundError, IndexError):
+        print("Could not load model... instantiating a new model")
+    
 
     # Get model parameters
     model_parameters = utils.get_model_parameters(model)
 
     # Centralized test data
     testloader = load_data.load_data(cfg.test_input_file, path_to_data=cfg.data_loc, phases=['test'])[0]
-
+    model_dict = dict((key, cfg.model[key]) for key in ["num_scales", "num_features", "num_filters", "f_mult"])
+    print(cfg["device"])
+    model_dict["device"] = cfg["device"]
+    model_dict["round"] = cfg["round"]
     # Instantiate a strategy
-    strategy = hydra.utils.instantiate(cfg.strategy, evaluate_metrics_aggregation_fn=weighted_average,
+    strategy = hydra.utils.instantiate(cfg.strategy, model_dict, evaluate_metrics_aggregation_fn=weighted_average,
                                        evaluate_fn=get_evaluate_fn(cfg.model, testloader, cfg.device))
 
     # Start Flower server for four rounds of federated learning
