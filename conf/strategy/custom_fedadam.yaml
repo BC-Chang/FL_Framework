@@ -1,0 +1,17 @@
+---
+_target_: agg_strats.SaveFedAdam # points to FedAvg (as if you were doing it in your python file)
+fraction_fit: 1
+min_fit_clients: ${num_clients_per_round_fit} # you can refer to any other variable defined in the config (as long as it is part of the experiment you run)
+fraction_evaluate: 1
+min_evaluate_clients: ${num_clients_per_round_eval} # this is a reference to the setting defined in `conf/base.yaml`
+min_available_clients: ${num_clients}
+on_fit_config_fn:
+  _target_: tasks.get_on_fit_config
+  config: ${config_fit}
+# Arguments unique to FedAdam
+eta: 0.2
+eta_l: 1e-4 # Client side learning rate
+tau: 0.1 # Adjusts degree of adaptability
+initial_parameters:
+  _target_: utils.model_to_parameters
+  model: ${model}

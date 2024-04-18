@@ -85,8 +85,11 @@ class MSNet_Client(fl.client.NumPyClient):
                                           f_mult=yaml_dict['f_mult'],
                                           summary=False)
 
+        with open(model_dir / "training_size.txt") as f:
+            training_size = f.read()
 
-        return self.get_parameters(self.net), len(config.train_size), {}
+
+        return self.get_parameters(self.net), int(training_size), {}
 
     # def evaluate(self, parameters, config):
     #     self.set_parameters(parameters)

@@ -42,7 +42,8 @@ def main(cfg: DictConfig) -> None:
 
     # Callbacks
     callbacks = [ModelCheckpoint(dirpath=f"lightning_logs/round_{cfg.round+1}",
-                                 save_on_train_epoch_end=True)]
+                                 save_on_train_epoch_end=True,
+                                 save_weights_only=True)]
 
     # Instantiate a Lightning Trainer
     trainer = Trainer(precision="32",
@@ -54,8 +55,13 @@ def main(cfg: DictConfig) -> None:
                       callbacks=callbacks,
                       accelerator=cfg.device)
 
-    # Train the model
-    trainer.fit(model, trainset, valset, ckpt_path=model_loc)
+    # Train the model, reset everything but the weights
+    trainer.fit(model, trainset, valset) #, ckpt_path=model_loc)
+
+    # Write the training set size to a text file
+    with open(f"lightning_logs/round_{cfg.round+1}/training_size.txt", "w") as f:
+        f.write(f"{len(trainset)}")
+
 
 
 if __name__ == "__main__":

@@ -9,13 +9,14 @@ from flwr.common.typing import Parameters, FitIns, FitRes
 from flwr.server.client_proxy import ClientProxy
 from flwr.server.client_manager import ClientManager
 from flwr.common import Parameters, Scalar, parameters_to_ndarrays
+from lightning import Trainer
 
 from network import MS_Net
 
 
-class SaveModelStrategy(FedAvg):
-    def __init__(self, save_path: str, model_dict, *args, **kwargs):
-        self.save_path = save_path
+class SaveFedAvg(FedAvg):
+    def __init__(self, model_dict, *args, **kwargs):
+        # self.save_path = save_path
 
         self.net = MS_Net(num_scales=model_dict['num_scales'],
                           num_features=model_dict['num_features'],
@@ -38,7 +39,9 @@ class SaveModelStrategy(FedAvg):
 
             # Save the model
             print(f"Saving round {rnd} weights...")
-            torch.save(self.net.state_dict(), f"{self.save_path}/model_round_{rnd}.pth")
+            trainer = Trainer(model=self.net, max_epochs=0, max_steps=0, default_root_dir="server_models")
+            trainer.save_checkpoint(f"./server_round_{rnd}.ckpt")
+            # torch.save(self.net.state_dict(), f"./server_models/server_round_{rnd}.ckpt")
 
         return aggregated_parameters, aggregated_metrics
 

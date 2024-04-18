@@ -22,6 +22,6 @@ config_fit:
 
 defaults:
   - model: msnet
-  - strategy: fedavg  # points to conf/strategy/fedavg.yaml
+  - strategy: custom_fedavg  # points to conf/strategy/fedavg.yaml
   - optimizer: adam.yaml # points to conf/optimizer/adam.yaml
   - _self_
