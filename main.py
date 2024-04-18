@@ -11,7 +11,7 @@ from hydra.utils import instantiate
 from omegaconf import DictConfig
 
 # Utility Packages
-from utils import get_device
+# from utils import get_device
 import load_data
 from tasks import train
 

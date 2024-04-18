@@ -1,10 +1,7 @@
-from torch.utils.data import DataLoader, random_split
-import torch
-from typing import List
-
 from dataloading_utils import *
 import yaml
 import os
+from torch.utils.data import DataLoader
 
 
 def load_data(data_input, path_to_data="./training_data", phases=('train', 'val', 'test')):
@@ -35,7 +32,15 @@ def load_data(data_input, path_to_data="./training_data", phases=('train', 'val'
 
 
 def get_dataloader(net_dict, phases):
+    """
+    Create a dataloader object for training, validation, or testing data
+    Args:
+        net_dict: A dictionary containing the data names
+        phases: At least one of ['train', 'val', 'test']
 
+    Returns:
+        Torch Dataloader object
+    """
     if isinstance(phases, str):  # when only testing is needed
         phases = [phases]
 
@@ -68,5 +73,18 @@ def get_dataloader(net_dict, phases):
         dataloader[phase] = DataLoader(data, batch_size=1,
                                        shuffle=(phase == 'train'),
                                        pin_memory=True,
-                                       num_workers=1)
+                                       num_workers=3,
+                                       persistent_workers=(phase == 'val'))
     return dataloader
+
+
+def load_hparams(yaml_loc):
+    """
+    Load hyperparameters listed in yaml file
+    Args:
+        yaml_loc: Path to the yaml file containing hyperparameters
+    Returns:
+        Dictionary of hyperparameters
+    """
+    with open(yaml_loc, 'r') as stream:
+        return yaml.load(stream, Loader=yaml.Loader)

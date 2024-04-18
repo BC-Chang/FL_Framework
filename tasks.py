@@ -76,6 +76,9 @@ def train(net, trainloader, valloader, optimizer, epochs: int, loss_f=nn.MSELoss
         results = {"train_loss": train_loss, "val_loss": val_loss}
         print(results)
 
+    # Save the model
+
+
     return results
 
 def train_fedprox(net, trainloader, valloader, optimizer, epochs: int, proximal_mu: float, loss_f=nn.MSELoss(), device: str="cpu"):

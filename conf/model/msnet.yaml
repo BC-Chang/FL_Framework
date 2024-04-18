@@ -1,7 +1,9 @@
 ---
 _target_: network.MS_Net
 # Model parameters
+num_scales: 4
 num_filters: 4
 num_features: 1
 f_mult: 4
+lr: ${config_fit.lr}
 summary: False
