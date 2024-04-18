@@ -1,5 +1,5 @@
 train_client:
- - 494
+ - 0
 train_sample:
  - 1
  - 2
@@ -7,7 +7,7 @@ train_size:
  - 256
 
 val_client:
- - 494
+ - 0
 val_sample:
  - 3
 val_size:
