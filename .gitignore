@@ -245,4 +245,5 @@ training_data/.DS_Store
 # Output files
 outputs/
 lightning_logs/
+client_models/
 server_models/
