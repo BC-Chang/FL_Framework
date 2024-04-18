@@ -11,13 +11,14 @@ round: 1
 train_input_file: ???
 test_input_file: test_data.yml
 data_loc: ./training_data
+model_dir: None
 
 config_fit:
   lr: 1.e-5
   local_epochs: 1
   batch_size: 1
   val_interval: 10
-  model_dir: ???
+
 
 defaults:
   - model: msnet
