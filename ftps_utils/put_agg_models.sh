@@ -4,27 +4,29 @@
 
 if [[ "$1" == "bp" ]]; then
     echo "Loading BP FTPS credentials..."
-    source bp_credentials.sh
+    source BP_credentials.sh
 elif [[ "$1" == "petrobras" ]]; then
     echo "Loading Petrobras FTPS credentials..."
-    source petrobras_credentials.sh
+    source Petrobras_credentials.sh
 else
     echo "Invalid argument"
+fi
+
 
 # File to store the previous file listing
-PREV_LIST_FILE="previous_server_model_list.txt"
-CURRENT_LIST_FILE="current_server_model_list.txt"
+PREV_LIST_FILE="$1_previous_server_model_list.txt"
+CURRENT_LIST_FILE="$1_current_server_model_list.txt"
 
 # Function to retrieve file listing from FTPS server
 get_file_listing() {
-    ls server_models/ | awk '{print $NF}' > "$CURRENT_LIST_FILE"
+    ls $STOCKYARD/fl/server_models/ | awk '{print $NF}' > "$CURRENT_LIST_FILE"
 }
 
 # Function to upload new folders from FTPS server
 upload_server_models() {
     diff --unchanged-line-format="" "$PREV_LIST_FILE" "$CURRENT_LIST_FILE" | grep -v '^$' | while read -r model; do
         echo "Uploading new server model: $model"
-        lftp -u "$USERNAME","$PASSWORD" "ftps://$HOST$REMOTE_DIR" -e "put --only-newer server_models/$model -o /server_models/$(model); exit"
+        lftp -u "$USERNAME","$PASSWORD" "ftps://$HOST$REMOTE_DIR" -e "cd server_models; put $STOCKYARD/fl/server_models/$model -o $model; exit"
     done
 }
 

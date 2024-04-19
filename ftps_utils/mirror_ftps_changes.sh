@@ -3,27 +3,30 @@
 # FTPS server details
 if [[ "$1" == "bp" ]]; then
     echo "Loading BP FTPS credentials..."
-    source bp_credentials.sh
+    source BP_credentials.sh
 elif [[ "$1" == "petrobras" ]]; then
     echo "Loading Petrobras FTPS credentials..."
-    source petrobras_credentials.sh
+    source Petrobras_credentials.sh
 else
     echo "Invalid argument"
+fi
+
 
 # File to store the previous file listing
-PREV_LIST_FILE="previous_file_list.txt"
-CURRENT_LIST_FILE="current_file_list.txt"
+PREV_LIST_FILE="$1_previous_file_list.txt"
+CURRENT_LIST_FILE="$1_current_file_list.txt"
+
 
 # Function to retrieve file listing from FTPS server
 get_file_listing() {
-    lftp -u "$USERNAME","$PASSWORD" "ftps://$HOST$REMOTE_DIR" -e "ls; exit" | awk '{print $NF}' > "$CURRENT_LIST_FILE"
+    lftp -u "$USERNAME","$PASSWORD" "ftps://$HOST$REMOTE_DIR" -e "set ftp:ssl-force true; ls client_models; exit" | awk '{print $NF}' > "$CURRENT_LIST_FILE"
 }
 
 # Function to download new folders from FTPS server
 download_new_folders() {
     diff --unchanged-line-format="" "$PREV_LIST_FILE" "$CURRENT_LIST_FILE" | grep -v '^$' | while read -r folder; do
-        echo "Downloading new folder: $folder"
-        lftp -u "$USERNAME","$PASSWORD" "ftps://$HOST$REMOTE_DIR" -e "mirror --only-newer $folder ./$1/$folder; exit"
+        echo "Downloading new folder: $folder to $STOCKYARD/fl/client_models/$1/$folder"
+        lftp -u "$USERNAME","$PASSWORD" "ftps://$HOST$REMOTE_DIR" -e "cd client_models; mirror --only-newer $folder $STOCKYARD/fl/client_models/$1/$folder; exit"
     done
 }
 
@@ -39,7 +42,7 @@ if [ -f "$PREV_LIST_FILE" ]; then
     else
         echo "Changes detected! Downloading new files..."
 	
-	download_new_folders
+	download_new_folders $1
         # Perform actions if changes are detected
         # TODO: run Python client with the new round
         # python client.py ...

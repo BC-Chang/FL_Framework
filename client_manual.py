@@ -72,7 +72,7 @@ class MSNet_Client(fl.client.NumPyClient):
             Locally updated model parameters and number of training samples
         """
         print(config)
-        model_dir = Path(self.cfg["model_dir"])
+        model_dir = Path(self.cfg["model_dir"]) / f"round_{self.cfg['round']}"
         model_loc = list(model_dir.glob('*.ckpt'))[-1]
         print(f"Attempting model load from {str(model_loc)}")
 
