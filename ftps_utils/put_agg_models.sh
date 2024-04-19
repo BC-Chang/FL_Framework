@@ -26,7 +26,7 @@ get_file_listing() {
 upload_server_models() {
     diff --unchanged-line-format="" "$PREV_LIST_FILE" "$CURRENT_LIST_FILE" | grep -v '^$' | while read -r model; do
         echo "Uploading new server model: $model"
-        lftp -u "$USERNAME","$PASSWORD" "ftps://$HOST$REMOTE_DIR" -e "cd server_models; put $STOCKYARD/fl/server_models/$model -o $model; exit"
+        lftp -u "$USERNAME","$PASSWORD" "ftps://$HOST$REMOTE_DIR" -e "cd server_models; put /home/bchang/FL_Framework/server_models/$model -o $model; exit"
     done
 }
 
