@@ -63,7 +63,7 @@ def main(cfg: DictConfig) -> None:
     model_dict["device"] = cfg["device"]
     model_dict["round"] = cfg["round"]
     # Instantiate a strategy
-    strategy = hydra.utils.instantiate(cfg.strategy, model_dict, evaluate_metrics_aggregation_fn=weighted_average,
+    strategy = hydra.utils.instantiate(cfg.strategy, model, model_dict, evaluate_metrics_aggregation_fn=weighted_average,
                                        evaluate_fn=get_evaluate_fn(cfg.model, testloader, cfg.device))
 
     # Start Flower server for four rounds of federated learning
