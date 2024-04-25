@@ -209,6 +209,26 @@ class MS_Net(LightningModule):
 
         return loss
 
+    def predict_step(self, batch, batch_idx):
+        sample, masks, xy = batch
+        x, y = xy[0], xy[1]
+
+        y_pred = self(x, masks)
+        loss = 0
+        y_var = torch.max(y[-1].var(), EPS)
+
+        for scale, [y_hat, yi] in enumerate(zip(y_pred, y)):
+            loss_s = F.mse_loss(y_hat, yi) / y_var
+            if torch.isnan(loss_s):
+                # print(f'The loss at scale {scale} is {loss_s}')
+                print('RUUUUUUUUUUUNNN')
+                print('-' * 100)
+            else:
+                loss += loss_s
+        #         print(f"{scale = }, {loss_s = }")
+        # print(f"Loss: {loss}")
+        return y, y_pred
+
     def configure_optimizers(self):
         return torch.optim.Adam(self.parameters(), lr=self.lr)
 

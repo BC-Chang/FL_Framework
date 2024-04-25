@@ -56,6 +56,7 @@ def get_dataloader(net_dict, phases):
     for phase in phases:
         #check_inputs(net_dict, phase)
         client, samples, sizes = get_fields(net_dict, phase)
+        samples = [f"{str(x).zfill(4)}" for x in samples]
         data = []
 
         for num, name_tuple in enumerate(zip(client, samples, sizes)):
@@ -73,8 +74,8 @@ def get_dataloader(net_dict, phases):
         dataloader[phase] = DataLoader(data, batch_size=1,
                                        shuffle=(phase == 'train'),
                                        pin_memory=True,
-                                       num_workers=3,
-                                       persistent_workers=(phase == 'val'))
+                                       num_workers=8,
+                                       persistent_workers=True)
     return dataloader
 
 
