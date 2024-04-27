@@ -1,20 +1,17 @@
-test_sample:
- - 374
+test_client:
+ - 494
 
-test_subsample:
+test_sample:
  - 4
 
 test_size:
  - 256
 
-test_pressure:
- - 1
-
 x_array:
  - 'bin'
 
 y_array:
- - 'phi'
+ - 'vz'
 
 x_xform:
  - None

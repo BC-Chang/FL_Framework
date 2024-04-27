@@ -57,7 +57,7 @@ def main(cfg: DictConfig) -> None:
                       check_val_every_n_epoch=cfg.config_fit.val_interval,
                       default_root_dir=f"client_model/round_{cfg.round+1}",
                       callbacks=callbacks,
-                      accelerator=cfg.device)
+                      strategy='auto')
 
     # Train the model, reset everything but the weights
     trainer.fit(model, trainset, valset) #, ckpt_path=model_loc)

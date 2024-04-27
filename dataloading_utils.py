@@ -55,7 +55,7 @@ def load_samples(feat, sample_name, net_dict, xform=None):
     data_dict = {'bin': {'path': f'{net_dict["data_loc"]}/bin', 'dkey': 'bin', 'ext': 'bin'},
                  'phi': {'path': f'{net_dict["data_loc"]}/elec', 'dkey': 'phi', 'ext': 'elec'},
                  'Iz': {'path': f'{net_dict["data_loc"]}/elec', 'dkey': 'Iz', 'ext': 'elec'},
-                 'vel': {'path': f'{net_dict["data_loc"]}/vel', 'dkey': 'uz', 'ext': 'uz'}}
+                 'vz': {'path': f'{net_dict["data_loc"]}/vz', 'dkey': 'vz', 'ext': 'vz'}}
 
     path = data_dict.get(feat, data_dict.get('bin'))['path']
 
@@ -88,12 +88,12 @@ def load_samples(feat, sample_name, net_dict, xform=None):
                     'porosity': slicewise_porosity,
                     'linear': linear_trend}
 
-    if not (feat == 'phi' or feat == 'Iz' or feat == 'vel'):
+    if not (feat == 'phi' or feat == 'Iz' or feat == 'vz'):
         assert feat in feature_dict, NotImplemented(
             "Selected feature has not been implemented. Please add it to features.py")
         # Inverted binary image
-        sample_inv = -1 * sample + 1
-        sample = feature_dict[feat](sample_inv)
+        #sample_inv = -1 * sample + 1
+        sample = feature_dict[feat](sample)
 
     if xform is not None:
         net_dict[f'{feat}_stats'] = sum_stats(sample)

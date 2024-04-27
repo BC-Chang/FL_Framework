@@ -15,8 +15,8 @@ model_dir: None
 
 config_fit:
   lr: 1.e-5
-  local_epochs: 1
-  batch_size: 1
+  local_epochs: 10
+  batch_size: 5
   val_interval: 10
 
 

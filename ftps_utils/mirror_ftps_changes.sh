@@ -26,7 +26,7 @@ get_file_listing() {
 download_new_folders() {
     diff --unchanged-line-format="" "$PREV_LIST_FILE" "$CURRENT_LIST_FILE" | grep -v '^$' | while read -r folder; do
         echo "Downloading new folder: $folder to $STOCKYARD/fl/client_models/$1/$folder"
-        lftp -u "$USERNAME","$PASSWORD" "ftps://$HOST$REMOTE_DIR" -e "cd client_models; mirror --only-newer $folder $STOCKYARD/fl/client_models/$1/$folder; exit"
+        lftp -u "$USERNAME","$PASSWORD" "ftps://$HOST$REMOTE_DIR" -e "cd client_models; get $folder; exit"
     done
 }
 
@@ -43,6 +43,11 @@ if [ -f "$PREV_LIST_FILE" ]; then
         echo "Changes detected! Downloading new files..."
 	
 	download_new_folders $1
+	mv *.tar* $STOCKYARD/fl/client_models/petrobras
+	tar -xvf $STOCKYARD/fl/client_models/petrobras/*.tar*
+	#rm $STOCKYARD/fl/client_models/petrobras/*.tar*
+	for d in $STOCKYARD/fl/client_models/petrobras/round_*; do cp $STOCKYARD/fl/client_models/petrobras/training_size.txt "$d"; done
+	
         # Perform actions if changes are detected
         # TODO: run Python client with the new round
         # python client.py ...
