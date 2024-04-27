@@ -17,7 +17,7 @@ import load_data
 def main(cfg: DictConfig) -> None:
     # Look for an updated checkpoint, instantiate a new model if it does not exist
 
-    model = instantiate(cfg.model).to(cfg.device)
+    model = instantiate(cfg.model)#.to(cfg.device)
 
     try:
         model_dir = Path(f'server_models/')
