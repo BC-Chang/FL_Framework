@@ -176,14 +176,14 @@ class MS_Net(LightningModule):
             else:
                 loss += loss_s
             self.log(f"loss_scale{scale}", loss_s, on_step=False, on_epoch=True, logger=True, rank_zero_only=True,
-                     prog_bar=True)
+                     prog_bar=False)
 
         if not loss:
             loss = None
-            self.log("loss", loss_s, on_step=True, on_epoch=True, prog_bar=True, logger=True, rank_zero_only=True)
+            self.log("loss", loss_s, on_step=True, on_epoch=True, prog_bar=False, logger=True, rank_zero_only=True)
         else:
             self.log("loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True, rank_zero_only=True)
-
+        #self.log("loss", loss, prog_bar=False, rank_zero_only=True)
         return loss
 
     def validation_step(self, batch, batch_idx):
@@ -203,12 +203,32 @@ class MS_Net(LightningModule):
             else:
                 loss += loss_s
             self.log(f"val_loss_scale{scale}", loss_s, on_step=False, on_epoch=True, logger=True, rank_zero_only=True,
-                     prog_bar=True)
+                     prog_bar=False)
 
         self.log("val_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True, rank_zero_only=True)
-
+        #self.log("val_loss", loss, prog_bar=False, rank_zero_only=True)
         return loss
 
+    def test_step(self, batch, batch_idx):
+        sample, masks, xy = batch
+        x, y = xy[0], xy[1]
+
+        y_pred = self(x, masks)
+        loss = 0
+        y_var = torch.max(y[-1].var(), EPS)
+
+        for scale, [y_hat, yi] in enumerate(zip(y_pred, y)):
+            loss_s = F.mse_loss(y_hat, yi) / y_var
+            if torch.isnan(loss_s):
+                # print(f'The loss at scale {scale} is {loss_s}')
+                print('RUUUUUUUUUUUNNN')
+                print('-' * 100)
+            else:
+                loss += loss_s
+        #         print(f"{scale = }, {loss_s = }")
+        #print(f"Loss: {loss}")
+        self.log("test_loss", loss, prog_bar=False, rank_zero_only=True)
+        
     def predict_step(self, batch, batch_idx):
         sample, masks, xy = batch
         x, y = xy[0], xy[1]
@@ -227,26 +247,26 @@ class MS_Net(LightningModule):
                 loss += loss_s
         #         print(f"{scale = }, {loss_s = }")
         # print(f"Loss: {loss}")
-        return y, y_pred
+        return y, y_pred, loss
 
     def configure_optimizers(self):
         return torch.optim.Adam(self.parameters(), lr=self.lr)
 
-    def test(self, masks, x1, x2):
-        with torch.no_grad():
-            y_up = [0] * self.scales  # upscaled prediction from coarser model
-            x = [torch.cat((xi1, xi2), dim=1) for xi1, xi2 in zip(x1, x2)]
-            del x1, x2
-            for scale, model in enumerate(self.models):
-                if scale == 0:
-                    y_up[scale] = model(x[scale])
-                else:
-                    y_up = [scale_tensor(y, scale_factor=2) * masks[scale - 1] if torch.is_tensor(y) else 0 for y in
-                            y_up]
-                    y_scale = sum(y_up)
-                    y_up[scale] = model(torch.cat((x[scale], y_scale), dim=1)) + y_scale
-                    del y_scale
-            return y_up[-1]
+    #def test(self, masks, x1, x2):
+    #    with torch.no_grad():
+    #        y_up = [0] * self.scales  # upscaled prediction from coarser model
+    #        x = [torch.cat((xi1, xi2), dim=1) for xi1, xi2 in zip(x1, x2)]
+    #        del x1, x2
+    #        for scale, model in enumerate(self.models):
+    #            if scale == 0:
+    #                y_up[scale] = model(x[scale])
+    #            else:
+    #                y_up = [scale_tensor(y, scale_factor=2) * masks[scale - 1] if torch.is_tensor(y) else 0 for y in
+    #                        y_up]
+    #                y_scale = sum(y_up)
+    #                y_up[scale] = model(torch.cat((x[scale], y_scale), dim=1)) + y_scale
+    #                del y_scale
+    #        return y_up[-1]
 
     # def save_model(self):
     #     torch.save(self.models,
